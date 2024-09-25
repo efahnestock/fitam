@@ -1,0 +1,56 @@
+{
+    "py/object": "fitam.core.config.RadialMapConfig.RadialMapConfig",
+    "farfield_config": {
+        "py/object": "fitam.core.config.RadialMapConfig.FarFieldConfig",
+        "orientation_bin_size": 0.19634954084936207,
+        "image_context_size": 0.19634954084936207,
+        "range_bins": [
+            25.0,
+            50.0,
+            75.0,
+            100.0
+        ],
+        "classification_config": {
+            "py/object": "fitam.core.config.RadialMapConfig.ClassificationConfig",
+            "class_ranges": [
+                0.0,
+                0.3,
+                1.1,
+                2.5,
+                3.5,
+                5.0
+            ],
+            "class_speeds": [
+                0.15,
+                0.75,
+                2.0,
+                3.0,
+                5.0
+            ],
+            "min_valid_percentage": 0.2,
+            "min_winning_percentage": 0.2
+        }
+    },
+    "robot_max_speed": 5.0,
+    "observation_radius": 25,
+    "map_resolution": 1.0,
+    "swath_angular_resolution": 0.001,
+    "unknown_value": -1,
+    "unknown_cost": 1.0,
+    "process_noise": 0.001,
+    "variance_threshold": 0.4,
+    "observation_variance_threshold": 99999.9,
+    "map_fusion_type": {
+        "py/reduce": [
+            {
+                "py/type": "fitam.core.config.RadialMapConfig.MapFusionType"
+            },
+            {
+                "py/tuple": [
+                    "kalman"
+                ]
+            }
+        ]
+    },
+    "use_occluded_local_observations": true
+}
