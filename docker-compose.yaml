@@ -1,0 +1,12 @@
+services:
+  fitam:
+    build: .  # Build the Docker image from the Dockerfile in the current directory
+    volumes:
+      - .:/fitam  # Mount the current directory to /fitam in the container
+    stdin_open: true  # Keep STDIN open even if not attached
+    tty: true         # Allocate a pseudo-TTY for the container (for command-line access)
+    working_dir: /fitam # Set the working directory inside the container
+    runtime: nvidia   # Use Nvidia runtime for GPU access
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all  # Make all GPUs visible
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility  # Allow for GPU compute usage
