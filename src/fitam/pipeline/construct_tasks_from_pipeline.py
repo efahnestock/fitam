@@ -31,8 +31,8 @@ def make_tasks_from_config(config: list, headless=False) -> list[Callable]:
         #     resulting_tasks.append(make_training_task(c))
         # elif type(c) == ModelTesting:
         #     resulting_tasks.append(make_model_testing_task(c))
-        # elif type(c) == EvaluationRequest:
-        #     resulting_tasks.append(make_evaluation_request_task(c))
+        elif type(c) == EvaluationRequest:
+            resulting_tasks.append(make_evaluation_request_task(c))
         # elif type(c) == Evaluation:
         #     resulting_tasks.append(make_evaluation_task(c, headless))
         else:
@@ -62,33 +62,65 @@ def make_swath_task(c: Swath) -> tuple[str, Callable]:
     return (c.name, task_create_swath)
 
 
-"""
-def make_map_sampling_task(c: MapSampling) -> tuple[str, Callable]:
-    def task_create_maps():
-        from radial_learning.pipeline.environment_sampling import setup_single_map_from_env_config
+# def make_map_sampling_task(c: MapSampling) -> tuple[str, Callable]:
+#     def task_create_maps():
+#         import os 
+#         from fitam.mapping.land_cover_complex_map import LandCoverComplexMap
+#         import numpy as np
+#         def setup_single_map_from_env_config(env_config_path:os.PathLike, input_path:os.PathLike, output_path:os.PathLike, make_obstacles:bool)->None:
+#             # load config
+#             env_config = load_json_config(env_config_path)
+#             #create output directory
+#             create_dir(output_path.parent)
+#             lcm = LandCoverComplexMap.from_map_folder(input_path)
+#             if make_obstacles:
+#                 lcm.generate_obstacles(env_config, np.random.Generator(np.random.PCG64()))
+#             lcm.save_map(output_path.name, output_path.parent)
+
+#         yield {
+#             'basename': "map_sampling_" + c.name,
+#             'name': None,
+#         }
+#         all_deps = []
+#         all_targets = []
+#         for in_path, out_path in zip(c.map_in_paths, c.map_out_paths):
+#             new_targets = [out_path / f"{out_path.name}.pkl"]
+#             all_targets.extend(new_targets)
+#             new_deps = [in_path / f"{in_path.name}.pkl", c.env_config_path]
+#             all_deps.extend(new_deps)
+#             yield dict(
+#                 name=f"{in_path}_{out_path}",
+#                 actions=[(setup_single_map_from_env_config, (), dict(input_path=in_path,
+#                                                                      env_config_path=c.env_config_path,
+#                                                                      make_obstacles=c.make_obstacles,
+#                                                                      output_path=out_path))],
+#                 targets=new_targets,
+#                 file_dep=new_deps,
+#             )
+#     return ("map_sampling_" + c.name, task_create_maps)
+
+def make_evaluation_request_task(c: EvaluationRequest):
+
+    def task_evaluation_request():
+        from fitam.evaluation.eval_utils import create_single_eval_request_for_env
+
         yield {
-            'basename': "map_sampling_" + c.name,
             'name': None,
         }
-        all_deps = []
-        all_targets = []
-        for in_path, out_path in zip(c.map_in_paths, c.map_out_paths):
-            new_targets = [out_path / f"{out_path.name}.pkl"]
-            all_targets.extend(new_targets)
-            new_deps = [in_path / f"{in_path.name}.pkl", c.env_config_path]
-            all_deps.extend(new_deps)
+        for map_path, save_path in zip(c.map_paths, c.save_paths):
             yield dict(
-                name=f"{in_path}_{out_path}",
-                actions=[(setup_single_map_from_env_config, (), dict(input_path=in_path,
-                                                                     env_config_path=c.env_config_path,
-                                                                     make_obstacles=c.make_obstacles,
-                                                                     output_path=out_path))],
-                targets=new_targets,
-                file_dep=new_deps,
+                name=f"{map_path}__{save_path}",
+                actions=[(create_single_eval_request_for_env, (), dict(map_path=map_path,
+                                                                       eval_config_path=c.evaluation_config_path,
+                                                                       save_path=save_path))],
+                file_dep=[map_path / f"{map_path.name}.pkl", c.evaluation_config_path],
+                targets=[save_path],
             )
-    return ("map_sampling_" + c.name, task_create_maps)
+
+    return (c.name, task_evaluation_request)
 
 
+"""
 def make_time_based_location_sampling_task(c: TimedLocationSampling) -> tuple[str, Callable]:
 
     def task_create_timed_sampling():
@@ -358,25 +390,6 @@ def make_model_testing_task(c: ModelTesting):
     return ('model_testing_'+c.name, task_model_test)
 
 
-def make_evaluation_request_task(c: EvaluationRequest):
-
-    def task_evaluation_request():
-        from radial_learning.pipeline.approach_evaluation import create_single_eval_request_for_env
-
-        yield {
-            'name': None,
-        }
-        for map_path, save_path in zip(c.map_paths, c.save_paths):
-            yield dict(
-                name=f"{map_path}__{save_path}",
-                actions=[(create_single_eval_request_for_env, (), dict(map_path=map_path,
-                                                                       eval_config_path=c.evaluation_config_path,
-                                                                       save_path=save_path))],
-                file_dep=[map_path / f"{map_path.name}.pkl", c.evaluation_config_path],
-                targets=[save_path],
-            )
-
-    return (c.name, task_evaluation_request)
 
 
 def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Callable]:

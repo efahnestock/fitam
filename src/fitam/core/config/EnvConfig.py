@@ -24,7 +24,7 @@ class ObstacleConfig:
 @dataclass
 class RealEnvConfig(EnvConfig):
 
-    obstacle_configs: dict[str, list[ObstacleConfig]] = None  # obstacles in this biome
+    obstacle_configs: dict[str, list[ObstacleConfig]] | None = None  # obstacles in this biome
 
     def __post_init__(self):
         # define a default obstacle config if none is provided

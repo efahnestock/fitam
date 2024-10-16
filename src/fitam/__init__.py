@@ -1,4 +1,5 @@
-import os, pathlib
+import os
+import pathlib
 
 FITAM_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
