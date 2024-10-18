@@ -1,0 +1,11 @@
+{
+    "py/object": "fitam.core.config.DatasetConfig.DatasetConfig",
+    "num_points_per_map": 1000,
+    "label_type": "CLASSIFICATION",
+    "kernel_width_meters": 10.0,
+    "distance_from_wall_meters": 50.0,
+    "min_distance_between_samples_meters": 5.0,
+    "camera_height": 1.5,
+    "camera_angles": [0, 1.25663706, 2.51327412, 3.76991118, 5.02654825],
+    "num_images_per_pano": 5
+}

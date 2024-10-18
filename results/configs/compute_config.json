@@ -1,0 +1,8 @@
+{
+    "py/object": "fitam.core.config.ComputeConfig.ComputationConfig",
+    "num_processes": 20,
+    "num_blender_instances": 5,
+    "num_gpu_training_instances": 5,
+    "num_locations_per_process": 200,
+    "num_planning_requests_per_process": 1
+}

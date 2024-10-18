@@ -1,0 +1,7 @@
+{
+    "py/object": "fitam.core.config.LoggingConfig.LoggingConfig",
+    "file_logging_level": 10,
+    "console_logging_level": 30,
+    "logging_filename": "main_output.log",
+    "logging_format": "%(asctime)s |%(levelname)s %(relativeCreated)6d ProcessID: %(process)d | %(message)s"
+}

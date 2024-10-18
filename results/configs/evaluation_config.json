@@ -1,0 +1,19 @@
+{
+    "py/object": "fitam.core.config.EvaluationConfig.EvaluationConfig",
+    "num_planning_queries_per_map": 100,
+    "min_eval_path_length_m": 1000,
+    "eval_point_sampling_dialation_radius_m": 2,
+    "eval_min_dist_from_map_edges_m": 100,
+    "max_planning_iterations": 1000,
+    "movement_per_replan_m": 20,
+    "save_panoramas": false,
+    "save_dataset": false,
+    "resume": true,
+    "save_paths": true,
+    "save_network_results": false,
+    "save_local_costmaps": false,
+    "overwrite_path_on_costmap": true,
+    "overwrite_past_states_on_costmap": true,
+    "save_final_path": true,
+    "save_costs": true
+}

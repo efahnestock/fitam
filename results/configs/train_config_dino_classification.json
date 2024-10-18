@@ -1,0 +1,21 @@
+{
+    "py/object": "fitam.core.config.TrainConfig.TrainConfig",
+    "model_name": "dinov2",
+    "loss_name": "wce",
+    "use_extracted_features": true,
+    "weight_by_class": true,
+    "entropy_weight": 0.1,
+    "num_epochs": 1000,
+    "batch_size": 64,
+    "tune_batch_size": false,
+    "learning_rate": 0.00229,
+    "tune_learning_rate": false,
+    "accumulate_grad_batches": 4,
+    "check_val_every_n_epoch": 1,
+    "overfit_batches": 0,
+    "shuffle_dataset": true,
+    "num_workers": 20,
+    "steps_per_printout": 2000,
+    "min_value": null,
+    "max_value": null
+}

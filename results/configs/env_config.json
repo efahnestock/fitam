@@ -1,0 +1,212 @@
+{
+    "py/object": "fitam.core.config.EnvConfig.RealEnvConfig",
+    "name": "unnamed_biome",
+    "obstacle_configs": {
+        "young_forest": [
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "trees",
+                "density": 0.001,
+                "self_overlap": false,
+                "other_properties": {
+                    "height_range": {
+                        "py/tuple": [
+                            5,
+                            15
+                        ]
+                    },
+                    "diameter_range": {
+                        "py/tuple": [
+                            0.7,
+                            1.0
+                        ]
+                    },
+                    "leaf_diameter_range": {
+                        "py/tuple": [
+                            4,
+                            8
+                        ]
+                    }
+                }
+            },
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "bushes",
+                "density": 0.0001,
+                "self_overlap": false,
+                "other_properties": {
+                    "diameter_range": {
+                        "py/tuple": [
+                            0.9,
+                            2.5
+                        ]
+                    },
+                    "height_range": {
+                        "py/tuple": [
+                            1,
+                            2
+                        ]
+                    }
+                }
+            },
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "fallen_trees",
+                "density": 0.0005,
+                "self_overlap": true,
+                "other_properties": {
+                    "diameter_range": {
+                        "py/tuple": [
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "height_range": {
+                        "py/tuple": [
+                            10,
+                            10
+                        ]
+                    }
+                }
+            }
+        ],
+        "forest": [
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "trees",
+                "density": 0.005,
+                "self_overlap": false,
+                "other_properties": {
+                    "height_range": {
+                        "py/tuple": [
+                            10,
+                            25
+                        ]
+                    },
+                    "diameter_range": {
+                        "py/tuple": [
+                            0.7,
+                            1.0
+                        ]
+                    },
+                    "leaf_diameter_range": {
+                        "py/tuple": [
+                            4,
+                            8
+                        ]
+                    }
+                }
+            },
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "bushes",
+                "density": 0.0005,
+                "self_overlap": false,
+                "other_properties": {
+                    "diameter_range": {
+                        "py/tuple": [
+                            0.9,
+                            2.5
+                        ]
+                    },
+                    "height_range": {
+                        "py/tuple": [
+                            1,
+                            2
+                        ]
+                    }
+                }
+            },
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "fallen_trees",
+                "density": 0.001,
+                "self_overlap": true,
+                "other_properties": {
+                    "diameter_range": {
+                        "py/tuple": [
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "height_range": {
+                        "py/tuple": [
+                            10,
+                            10
+                        ]
+                    }
+                }
+            }
+        ],
+        "grass": [
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "rocks",
+                "density": 0.0005,
+                "self_overlap": false,
+                "other_properties": {
+                    "diameter_range": {
+                        "py/tuple": [
+                            0.5,
+                            1.5
+                        ]
+                    }
+                }
+            }
+        ],
+        "field": [
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "rocks",
+                "density": 0.0005,
+                "self_overlap": false,
+                "other_properties": {
+                    "diameter_range": {
+                        "py/tuple": [
+                            0.5,
+                            1.5
+                        ]
+                    }
+                }
+            }
+        ],
+        "structure": [
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "buildings",
+                "density": 1,
+                "self_overlap": false,
+                "other_properties": {
+                    "height_range": {
+                        "py/tuple": [
+                            5,
+                            15
+                        ]
+                    }
+                }
+            }
+        ],
+        "marsh": [
+            {
+                "py/object": "fitam.core.config.EnvConfig.ObstacleConfig",
+                "name": "fallen_trees",
+                "density": 0.0005,
+                "self_overlap": true,
+                "other_properties": {
+                    "diameter_range": {
+                        "py/tuple": [
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "height_range": {
+                        "py/tuple": [
+                            10,
+                            10
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}
