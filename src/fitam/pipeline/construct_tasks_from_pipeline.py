@@ -30,8 +30,8 @@ def make_tasks_from_config(config: list, headless=False) -> list[Callable]:
             resulting_tasks.append(make_dataset_task(c))
         elif type(c) == Training:
             resulting_tasks.append(make_training_task(c))
-        # elif type(c) == Evaluation:
-        #     resulting_tasks.append(make_evaluation_task(c, headless))
+        elif type(c) == Evaluation:
+            resulting_tasks.append(make_evaluation_task(c, headless))
         else:
             raise ValueError(f"Unknown config type {type(c)}")
     return resulting_tasks
@@ -251,129 +251,11 @@ def make_training_task(c: Training):
 
     return ("training_" + c.name, task_train)
 
-"""
-def make_location_sampling_task(c: LocationSampling) -> tuple[str, Callable]:
-
-    def task_create_sampling():
-        from radial_learning.pipeline.dataset_generation import generate_single_image_request
-        yield {
-            'basename': c.name,
-            'name': None,
-        }
-
-        for in_path, out_path in zip(c.map_paths, c.save_paths):
-            yield {
-                'name': f'{in_path}_{out_path}',
-                'actions': [(generate_single_image_request, (), dict(dataset_config_path=c.dataset_config_path,
-                                                                     map_path=in_path,
-                                                                     save_path=out_path))],
-                'file_dep': [c.dataset_config_path, in_path / f"{in_path.name}.pkl"],
-                'targets': [out_path],
-
-            }
-    return (c.name, task_create_sampling)
-
-
-def make_image_rendering_task(c: ImageRendering) -> tuple[str, Callable]:
-
-    def task_create_rendering():
-        from radial_learning.pipeline.dataset_generation import create_images_part
-
-        # load the compute config!
-        compute_config = load_json_config(c.compute_config_path)
-        all_targets = []
-        all_deps = []
-
-        yield {
-            'basename': c.name,
-            'name': None,
-        }
-
-        for global_idx, (img_req_path, save_root) in enumerate(zip(c.location_sample_paths, c.save_paths)):
-            # now tile these!
-
-            # load the image request!
-            if img_req_path.suffix == ".json":
-                img_req = load_json_config(img_req_path)
-            elif img_req_path.suffix == ".pkl":
-                img_req = load_pickle_config(img_req_path)
-            else:
-                raise RuntimeError(f"Unknown file type {img_req_path.suffix} for image request {img_req_path}")
-            num_tiles = len(img_req.locations) // compute_config.num_locations_per_process
-            if c.complex_map_paths is not None:
-                map_path = c.complex_map_paths[global_idx]
-            else:
-                map_path = None
-
-            for i in range(num_tiles):
-                start_idx = i * compute_config.num_locations_per_process
-                end_idx = (i+1) * compute_config.num_locations_per_process if i < num_tiles - 1 else len(img_req.locations)
-                new_targets = [save_root / f'points_{start_idx}_{end_idx}.csv']
-                all_targets.extend(new_targets)
-                new_deps = [img_req_path, c.dataset_config_path]
-                all_deps.extend(new_deps)
-                yield dict(
-                    name=f"{img_req_path}_{i}",
-                    actions=[(create_images_part, (), dict(image_request_path=img_req_path,
-                                                           start_idx=start_idx,
-                                                           end_idx=end_idx,
-                                                           save_root_dir=save_root,
-                                                           dataset_config_path=c.dataset_config_path,
-                                                           complex_map_path=map_path,
-                                                           ))],
-                    file_dep=new_deps,
-                    targets=new_targets,
-                )
-        # now merge all the image info files!
-        from radial_learning.pipeline.dataset_generation import merge_image_csvs
-        yield dict(
-            name=f"{c.name}_merge",
-            actions=[(merge_image_csvs, (), dict(root_dir=c.save_root_path))],
-            file_dep=all_targets,
-            targets=[c.save_root_path / "points.csv"],
-        )
-
-    # task_create_rendering.doit_create_after = task.DelayedLoader(
-    #     creator=task_create_rendering,
-    #     executed=c.dependent_task,
-    #     target_regex=None,
-    #     creates=[c.name]
-    # )
-
-    return (c.name, task_create_rendering)
-
-
-
-
-def make_model_testing_task(c: ModelTesting):
-
-    def task_model_test():
-        from radial_learning.pipeline.network_training import test_individual_network
-
-        yield {
-            'name': 'model_testing_'+c.name,
-            'actions': [(test_individual_network, (), dict(
-                train_config_path=c.test_config_path,
-                save_dir=c.save_path,
-                dataset_csv_path=c.dataset_csv_path,
-                model_checkpoint_path=c.model_path,
-            ))],
-            'file_dep': [c.model_path, c.dataset_csv_path],
-            'targets': [c.save_path / "test_results.json"],
-            'verbosity': 2,
-        }
-
-    return ('model_testing_'+c.name, task_model_test)
-
-
-
-
 def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Callable]:
 
     def task_evaluation():
-        from radial_learning.evaluation.planner_trial_opengl import worker
-        from radial_learning.evaluation.eval_save_inputs import save_all_inputs
-        from radial_learning.evaluation.eval_utils import monitor_workers
+        from fitam.evaluation.planner_trial_opengl import worker
+        from fitam.evaluation.eval_save_inputs import save_all_inputs
 
         yield {
             'basename': "evaluation_" + c.name,
@@ -388,16 +270,6 @@ def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Ca
             file_dep=all_file_deps,
             targets=[c.save_root_path / "inputs.json"],
         )
-
-        # monitor task
-        # yield dict(
-        #     name=f"{c.name}_monitor",
-        #     actions=[(monitor_workers, (), dict(
-        #                                     save_roots=[c.save_root_path / x for x in c.save_paths],
-        #                                     eval_request_paths=c.eval_request_paths,
-        #     ))],
-        #     verbosity=2,
-        # )
 
         # load the compute config!
         compute_config = load_json_config(c.compute_config_path)
@@ -436,12 +308,4 @@ def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Ca
                     verbosity=2,
                 )
 
-    # task_evaluation.doit_create_after = task.DelayedLoader(
-    #     creator=task_evaluation,
-    #     executed=c.dependent_task,
-    #     target_regex=None,
-    #     creates=[c.name]
-    # )
-
     return ("evaluation_" + c.name, task_evaluation)
-"""

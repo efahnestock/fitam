@@ -1,5 +1,7 @@
 # Far-Field Image-Based Traversability Mapping for **A Priori** Unknown Natural Environments
 
+[sim](images/sim_pano_cropped.gif)
+
 While navigating unknown environments, robots rely primarily on proximate features for guidance in decision making, such as depth information from lidar or stereo to build a costmap, or local semantic information from images. The limited range over which these features can be used may result in poor robot behavior when assumptions about the cost of the map beyond the range of proximate features misguide the robot. Integrating "far-field" image features that originate beyond these proximate features into the mapping pipeline has the promise of enabling more intelligent and aware navigation through unknown terrain. To navigate with far-field features, key challenges must be overcome. As far-field features are typically too distant to localize precisely, they are difficult to place in a map. Additionally, the large distance between the robot and these features makes connecting these features to their navigation implications more challenging. We propose *FITAM*, an approach that learns to use far-field features to predict costs to guide navigation through unknown environments from previous experience in a self-supervised manner. Unlike previous work, our approach does not rely on flat ground plane assumptions or other range sensors to localize observations. We demonstrate the benefits of our approach through simulated trials and real-world deployment on a Clearpath Robotics Warthog navigating through a forest environment.
 
 # Requirements
@@ -85,9 +87,27 @@ To run:
 `doit dataset*`
 
 # Train Models
+Given a dataset, model config/type, train an ensemble of far-field models.
+Inputs:
+- Dataset
+- Train Config
+- Radial Map Config
+Outputs:
+- Trained models
+To run:
+`doit training*`
 
 
 # Run Evaluations
+Given a trained model, a map, and an evaluation request, run evaluations on the model.
+Inputs:
+- Trained model
+- Map
+- Evaluation request
+Outputs:
+- Evaluation results
+To run:
+`doit evaluation*`
 
 
 ## TODO
@@ -99,7 +119,7 @@ be able to generate:
   - [x] Sampled locations
   - [x] Images
   - [x] Datasets
-  - [ ] Trained models
-- [ ] be able to run evaluations
+  - [x] Trained models
+- [x] be able to run evaluations
 - [x] Add a description of the project
 - [x] Make maps and other initial information available online

@@ -14,7 +14,7 @@ fix_known_states(state, known_states)
 Belief - holds all of the arrays
        - takes the place of radial_costmap, can produce downstream planning maps 
 BeliefUpdater - updates the belief and knows how to work on an individual cell
-Observation - answers questions in a spatial sort of way (gt, ff, diffusion)
+Observation - answers questions in a spatial sort of way (gt, ff)
             - what are the list of places I can say something about
             - can produce it in i,j format, given robot's position in the world, resolution, etc.
 

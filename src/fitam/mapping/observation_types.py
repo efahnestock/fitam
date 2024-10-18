@@ -119,36 +119,3 @@ class GTObservation:
         out += ")"
         return out
 
-
-class DiffusionObservation:
-
-    def __init__(self,
-                 center_idx: tuple[int, int],
-                 cost_array: np.ndarray,
-                 uncertainty_array: np.ndarray,
-                 costmap: OccupancyGrid,
-                 max_cost: float = 100.0
-                ) -> None:
-        assert len(cost_array.shape) == 2
-        assert cost_array.shape == uncertainty_array.shape
-        assert cost_array.dtype.kind == 'f'
-        assert uncertainty_array.dtype.kind == 'f'
-        self.center_idx = center_idx
-        self.cost_array = cost_array
-        self.uncertainty_array = uncertainty_array
-        self.costmap = costmap
-        self.max_cost = max_cost
-
-
-
-    def to_kalman_observation(self, map_shape: tuple) -> KalmanObservation:
-        ii, jj = np.meshgrid(np.arange(self.cost_array.shape[0]), np.arange(self.cost_array.shape[1]), indexing='ij')
-        ii += self.center_idx[0] - self.cost_array.shape[0] // 2
-        jj += self.center_idx[1] - self.cost_array.shape[1] // 2
-        ii = ii.flatten()
-        jj = jj.flatten()
-        costs = self.cost_array.flatten()
-        costs = np.clip(costs, 0, self.max_cost)
-        noise = self.uncertainty_array.flatten()
-        mask = (ii >= 0) & (ii < map_shape[0]) & (jj >= 0) & (jj < map_shape[1])
-        return KalmanObservation(ii[mask], jj[mask], costs[mask], noise[mask])

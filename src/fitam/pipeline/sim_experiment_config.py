@@ -203,7 +203,6 @@ for radial_config_path in all_radial_configs:
         radial_config_path=CONFIGS_DIR / radial_config_path,
     ))
 
-"""
 
 all_test_evaluation_request_paths = sorted(list((EVALUATION_REQUESTS_DIR / "all_test_counties").glob("*.json")))
 all_ablation_evaluation_request_paths = sorted(list((EVALUATION_REQUESTS_DIR / "ablation").glob("*.json")))
@@ -405,4 +404,3 @@ pipeline_config.append(Evaluation(**make_evaluation('core_farfield', evaluation_
 gt_farfield = make_evaluation('core_farfield', evaluation_configurations, 'all_test', custom_name='gt_farfield')
 gt_farfield['model_path'] = None
 pipeline_config.append(Evaluation(**gt_farfield))
-"""
