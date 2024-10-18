@@ -12,8 +12,6 @@ from fitam import (CONFIGS_DIR,
 from fitam.pipeline.pipeline_elements import (
     Swath, EvaluationRequest, ImageRendering, Dataset, Training, Evaluation, TimedLocationSampling
 )
-from fitam.learning.bin_ensemble_torch import MemberModelName
-from pathlib import Path
 
 pipeline_config = []
 
@@ -64,35 +62,35 @@ training_county_name = 'balt_24005_lulc_2018'
 #             map_in_paths=[map_in_path],
 #             map_out_paths=[map_out_path],
 #         ))
-for map_out_path in Path(MAPS_DIR / 'all_test_counties').glob("*/"):
-    pipeline_config.append(EvaluationRequest(
-        name=f"eval_request_all_test_counties_{map_out_path.name}",
-        map_paths=[map_out_path],
-        save_paths=[EVALUATION_REQUESTS_DIR / 'all_test_counties' / f"{map_out_path.name}.json"],
-        evaluation_config_path=CONFIGS_DIR / 'evaluation_config.json',
-    ))
-    pipeline_config.append(EvaluationRequest(
-        name=f"eval_request_ablation_{map_out_path.name}",
-        map_paths=[map_out_path],
-        save_paths=[EVALUATION_REQUESTS_DIR / 'ablation' / f"{map_out_path.name}.json"],
-        evaluation_config_path=CONFIGS_DIR / 'evaluation_config_ablation.json',
-    ))
+# for map_out_path in Path(MAPS_DIR / 'all_test_counties').glob("*/"):
+#     pipeline_config.append(EvaluationRequest(
+#         name=f"eval_request_all_test_counties_{map_out_path.name}",
+#         map_paths=[map_out_path],
+#         save_paths=[EVALUATION_REQUESTS_DIR / 'all_test_counties' / f"{map_out_path.name}.json"],
+#         evaluation_config_path=CONFIGS_DIR / 'evaluation_config.json',
+#     ))
+#     pipeline_config.append(EvaluationRequest(
+#         name=f"eval_request_ablation_{map_out_path.name}",
+#         map_paths=[map_out_path],
+#         save_paths=[EVALUATION_REQUESTS_DIR / 'ablation' / f"{map_out_path.name}.json"],
+#         evaluation_config_path=CONFIGS_DIR / 'evaluation_config_ablation.json',
+#     ))
 
 # Image RQs
 max_time_request_seconds = 60 * 60 * 10  # 10 hours exploration max
 
-pipeline_config.append(
-    TimedLocationSampling(
-        name='training_map',
-        seed=0,
-        map_path=train_balt_map_out_path,
-        save_folder_path=Path('training_map'),  # saves in SAMPLED_LOCATIONS_DIR and MAPS_DIR
-        seconds_of_exploration=max_time_request_seconds,
-        obs_rad_m=25,
-        meters_between_keypoints=2,
-        max_iters_per_waypoint=50,
-    )
-)
+# pipeline_config.append(
+#     TimedLocationSampling(
+#         name='training_map',
+#         seed=0,
+#         map_path=train_balt_map_out_path,
+#         save_folder_path=Path('training_map'),  # saves in SAMPLED_LOCATIONS_DIR and MAPS_DIR
+#         seconds_of_exploration=max_time_request_seconds,
+#         obs_rad_m=25,
+#         meters_between_keypoints=2,
+#         max_iters_per_waypoint=50,
+#     )
+# )
 
 
 # # splitting up image requests
