@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.3.2-devel-ubuntu22.04
+FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
 
 
 # Install Python 3.10, pip, and other dependencies
@@ -53,3 +53,4 @@ COPY src/ /fitam/src
 RUN pdm use -f /env_fitam/
 RUN pdm install
 ENV PATH="/env_fitam/bin:$PATH"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/software/VTK-modified-pano/build/build/lib.linux-x86_64-3.10/vtkmodules/"

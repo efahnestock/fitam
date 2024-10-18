@@ -1,8 +1,7 @@
 
 from os import PathLike
 from typing import NamedTuple, Optional
-from dataclasses import field
-# from radial_learning.models.bin_ensemble_torch import MemberModelName
+from fitam.learning.bin_ensemble_torch import MemberModelName
 
 
 class Swath(NamedTuple):
@@ -85,7 +84,7 @@ class Training(NamedTuple):
     ensemble_members: int = 15
     # if None, train all the bins in the radial map config
     num_bins: Optional[int] = None
-    # member_model_name: MemberModelName = MemberModelName.UNTRAINED_RESNET_INDIVIDUAL
+    member_model_name: MemberModelName = MemberModelName.UNTRAINED_RESNET_INDIVIDUAL
     member_model_args: Optional[dict] = None
 
 

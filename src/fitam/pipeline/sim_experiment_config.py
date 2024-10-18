@@ -10,9 +10,9 @@ from fitam import (CONFIGS_DIR,
                    IMAGES_DIR,
                    )
 from fitam.pipeline.pipeline_elements import (
-    Swath#, EvaluationRequest, MapSampling, LocationSampling, ImageRendering, Dataset, Training, Evaluation, ModelTesting, TimedLocationSampling
+    Swath, EvaluationRequest, ImageRendering, Dataset, Training, Evaluation, TimedLocationSampling
 )
-# from radial_learning.models.bin_ensemble_torch import MemberModelName
+from fitam.learning.bin_ensemble_torch import MemberModelName
 from pathlib import Path
 
 pipeline_config = []
@@ -36,65 +36,57 @@ for config_path in all_radial_configs:
             save_path=SWATHS_DIR / config_path.parent.relative_to(CONFIGS_DIR) / f"{config_path.stem}.pkl",
         )
     )
-"""
-# MAP SAMPLING and EVALUATION REQUESTS
-# NOTE: fixed at 10 paths
 train_balt_map_out_path = MAPS_DIR / 'final_experiment_train_balt'
 training_county_name = 'balt_24005_lulc_2018'
-if Path(FITAM_LAND_COVER_DIR, training_county_name, 'final_experiment_maps').exists():
-    balt_maps = Path(FITAM_LAND_COVER_DIR, training_county_name, 'final_experiment_maps')
-    balt_map_in_path = list(sorted([x for x in balt_maps.iterdir() if x.is_dir()]))[0]
-    balt_train_map_sampling = MapSampling(
-        name='balt_train',
-        env_config_path=CONFIGS_DIR / 'env_config.json',
-        map_in_paths=[balt_map_in_path],
-        map_out_paths=[train_balt_map_out_path],
-    )
-    pipeline_config.append(balt_train_map_sampling)
+# EVALUATION REQUESTS
+# exclude as we use pre-generated ones
 
-    # add sampling for the all-county maps
-    for i, county_name in enumerate(Path(FITAM_LAND_COVER_DIR / 'all_county_maps').glob("*/")):
-        if training_county_name in str(county_name.name):
-            continue
-        map_in_path = county_name
-        map_out_path = MAPS_DIR / 'all_test_counties' / county_name.name
-        pipeline_config.append(MapSampling(
-            name=f'all_test_counties_{county_name.name}',
-            env_config_path=CONFIGS_DIR / 'env_config.json',
-            map_in_paths=[map_in_path],
-            map_out_paths=[map_out_path],
-        ))
-        pipeline_config.append(EvaluationRequest(
-            name=f"eval_request_all_test_counties_{county_name.name}",
-            map_paths=[map_out_path],
-            save_paths=[EVALUATION_REQUESTS_DIR / 'all_test_counties' / f"{county_name.name}.json"],
-            evaluation_config_path=CONFIGS_DIR / 'evaluation_config.json',
-        ))
-        pipeline_config.append(EvaluationRequest(
-            name=f"eval_request_ablation_{county_name.name}",
-            map_paths=[map_out_path],
-            save_paths=[EVALUATION_REQUESTS_DIR / 'ablation' / f"{county_name.name}.json"],
-            evaluation_config_path=CONFIGS_DIR / 'evaluation_config_ablation.json',
-        ))
-        if i < 20:
-            pipeline_config.append(EvaluationRequest(
-                name=f"eval_request_shake_out_{county_name.name}",
-                map_paths=[map_out_path],
-                save_paths=[EVALUATION_REQUESTS_DIR / 'shake_out' / f"{county_name.name}.json"],
-                evaluation_config_path=CONFIGS_DIR / 'shakeout_evaluation_config.json',
-            ))
+# if Path(FITAM_LAND_COVER_DIR, training_county_name, 'final_experiment_maps').exists():
+#     balt_maps = Path(FITAM_LAND_COVER_DIR, training_county_name, 'final_experiment_maps')
+#     balt_map_in_path = list(sorted([x for x in balt_maps.iterdir() if x.is_dir()]))[0]
+#     balt_train_map_sampling = MapSampling(
+#         name='balt_train',
+#         env_config_path=CONFIGS_DIR / 'env_config.json',
+#         map_in_paths=[balt_map_in_path],
+#         map_out_paths=[train_balt_map_out_path],
+#     )
+#     pipeline_config.append(balt_train_map_sampling)
 
+#     # add sampling for the all-county maps
+#     for i, county_name in enumerate(Path(FITAM_LAND_COVER_DIR / 'all_county_maps').glob("*/")):
+#         if training_county_name in str(county_name.name):
+#             continue
+#         map_in_path = county_name
+#         map_out_path = MAPS_DIR / 'all_test_counties' / county_name.name
+#         pipeline_config.append(MapSampling(
+#             name=f'all_test_counties_{county_name.name}',
+#             env_config_path=CONFIGS_DIR / 'env_config.json',
+#             map_in_paths=[map_in_path],
+#             map_out_paths=[map_out_path],
+#         ))
+for map_out_path in Path(MAPS_DIR / 'all_test_counties').glob("*/"):
+    pipeline_config.append(EvaluationRequest(
+        name=f"eval_request_all_test_counties_{map_out_path.name}",
+        map_paths=[map_out_path],
+        save_paths=[EVALUATION_REQUESTS_DIR / 'all_test_counties' / f"{map_out_path.name}.json"],
+        evaluation_config_path=CONFIGS_DIR / 'evaluation_config.json',
+    ))
+    pipeline_config.append(EvaluationRequest(
+        name=f"eval_request_ablation_{map_out_path.name}",
+        map_paths=[map_out_path],
+        save_paths=[EVALUATION_REQUESTS_DIR / 'ablation' / f"{map_out_path.name}.json"],
+        evaluation_config_path=CONFIGS_DIR / 'evaluation_config_ablation.json',
+    ))
 
 # Image RQs
 max_time_request_seconds = 60 * 60 * 10  # 10 hours exploration max
 
-
 pipeline_config.append(
     TimedLocationSampling(
-        name=f'training_map',
+        name='training_map',
         seed=0,
         map_path=train_balt_map_out_path,
-        save_folder_path='training_map',  # saves in SAMPLED_LOCATIONS_DIR and MAPS_DIR
+        save_folder_path=Path('training_map'),  # saves in SAMPLED_LOCATIONS_DIR and MAPS_DIR
         seconds_of_exploration=max_time_request_seconds,
         obs_rad_m=25,
         meters_between_keypoints=2,
@@ -103,9 +95,9 @@ pipeline_config.append(
 )
 
 
-# splitting up image requests
-# python radial_learning/dataset_generation/split_image_request_by_time.py -i results/sampled_locations/training_map/image_request.pkl -m results/maps/final_experiment_train_balt -v 25 -t 10 30 60 120 360 -o split_up_image_requests
-# image rendering for balt-standard
+# # splitting up image requests
+# # python radial_learning/dataset_generation/split_image_request_by_time.py -i results/sampled_locations/training_map/image_request.json -m results/maps/final_experiment_train_balt -v 25 -t 10 30 60 120 360 -o split_up_image_requests
+# # image rendering for balt-standard
 
 
 pipeline_config.append(
@@ -115,13 +107,13 @@ pipeline_config.append(
         dataset_config_path=CONFIGS_DIR / 'classification_dataset_config.json',
         dependent_task=None,
         save_paths=[IMAGES_DIR / 'balt_standard'],
-        location_sample_paths=[SAMPLED_LOCATIONS_DIR / 'training_map' / 'image_request.pkl'],
+        location_sample_paths=[SAMPLED_LOCATIONS_DIR / 'training_map' / 'image_request.json'],
         save_root_path=IMAGES_DIR / 'balt_standard',
         complex_map_paths=[train_balt_map_out_path],
     )
 )
 
-# # image rendering for balt-10m, etc (timed datasets)
+# image rendering for balt-10m, etc (timed datasets)
 times = [10, 30, 60, 120, 360]
 for time in times:
     balt_timed_in_paths = [(SAMPLED_LOCATIONS_DIR / 'split_up_image_requests' / f"image_request_{time}m.json")]
@@ -171,25 +163,6 @@ pipeline_config.append(Training(
     radial_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'long_range_radial_map_config.json',
 ))
 
-# # Model ablations
-pipeline_config.append(Training(
-    name='balt_pretrained_resnet',
-    dataset_csv_path=DATASETS_DIR / 'balt_standard' / 'balanced_semantic_dataset.csv',
-    save_path=MODELS_DIR / 'balt_pretrained_resnet',
-    train_config_path=CONFIGS_DIR / 'train_config_dino_classification.json',
-    radial_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'radial_map_config.json',
-    member_model_name=MemberModelName.PRETRAINED_RESNET_INDIVIDUAL,
-))
-pipeline_config.append(Training(
-    name='balt_dino',
-    dataset_csv_path=DATASETS_DIR / 'balt_standard' / 'balanced_semantic_dataset.csv',
-    save_path=MODELS_DIR / 'balt_dino',
-    train_config_path=CONFIGS_DIR / 'train_config_dino_classification.json',
-    radial_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'radial_map_config.json',
-    member_model_name=MemberModelName.LINEAR,
-))
-
-
 # # balt-10m, etc (timed datasets)
 for time in times:
     pipeline_config.append(Dataset(
@@ -230,6 +203,7 @@ for radial_config_path in all_radial_configs:
         radial_config_path=CONFIGS_DIR / radial_config_path,
     ))
 
+"""
 
 all_test_evaluation_request_paths = sorted(list((EVALUATION_REQUESTS_DIR / "all_test_counties").glob("*.json")))
 all_ablation_evaluation_request_paths = sorted(list((EVALUATION_REQUESTS_DIR / "ablation").glob("*.json")))

@@ -1,6 +1,6 @@
 import os
 from fitam.core.common import create_dir, load_json_config, dump_json_config
-from fitam.core.easl_structures import EvaluationRequest
+from fitam.core.product_structures import EvaluationRequest
 from fitam.mapping.costmap import OccupancyGrid
 from fitam.mapping.land_cover_complex_map import LandCoverComplexMap
 from fitam.planning.astar import A_Star
