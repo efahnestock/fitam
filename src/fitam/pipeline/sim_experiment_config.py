@@ -22,6 +22,8 @@ for config_path in glob_all_radial_configs:
     rel_path = config_path.relative_to(CONFIGS_DIR)
     if 'outdoor' in rel_path.parts:
         continue
+    if "spatial_label" in rel_path.parts:  # don't include the spatial baseline in the list 
+        continue
     all_radial_configs.append(config_path)
 
 for config_path in all_radial_configs:
