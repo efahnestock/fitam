@@ -50,7 +50,7 @@ class SpatialLabelModel(nn.Module):
     
 
 def load_spatial_label_model(model_path):
-    params = torch.load(model_path, weights_only=True)
+    params = torch.load(model_path, weights_only=True, map_location=torch.device('cpu'))
     model = SpatialLabelModel()
     model.load_state_dict(params)
     return model
