@@ -14,6 +14,9 @@ Requires Docker, nvidia-docker installed.
 To run the docker environment, run the following command:
 ```docker compose run fitam```
 
+To run a jupyter notebook server in the `fitam` environment run:
+```TOKEN=your_jupyter_token docker compose run --service-ports notebook```
+
 Confirm your GPU is visible by running `nvidia-smi`. Execute all tasks below in the docker environment. All available tasks can be seen by running `doit list`. 
 
 # Data

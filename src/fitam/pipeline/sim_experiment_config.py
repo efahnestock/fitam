@@ -217,6 +217,16 @@ evaluation_configurations = {
         swath_library_path=SWATHS_DIR / 'simulated_radial_configs' / 'baseline_radial_map_config.pkl',
         dependent_task=None,
     ),
+    'baseline_spatial_labels': dict(
+        model_path=MODELS_DIR / 'spatial_label_propagation' / 'best_model.pt',
+        dataset_config_path=None,
+        radial_map_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'spatial_label_radial_map_config.json',
+        logging_config_path=CONFIGS_DIR / 'logging_config.json',
+        training_config_path=None,
+        compute_config_path=CONFIGS_DIR / 'compute_config.json',
+        swath_library_path=SWATHS_DIR / 'simulated_radial_configs' / 'spatial_label_radial_map_config.pkl',
+        dependent_task=None,
+    ),
     'perfect_vision': dict(
         model_path=None,
         dataset_config_path=None,
@@ -399,6 +409,7 @@ pipeline_config.append(Evaluation(**threshold))
 pipeline_config.append(Evaluation(**make_evaluation('baseline', evaluation_configurations, 'all_test')))
 pipeline_config.append(Evaluation(**make_evaluation('perfect_vision', evaluation_configurations, 'all_test')))
 pipeline_config.append(Evaluation(**make_evaluation('core_farfield', evaluation_configurations, 'all_test')))
+pipeline_config.append(Evaluation(**make_evaluation('baseline_spatial_labels', evaluation_configurations, 'all_test')))
 gt_farfield = make_evaluation('core_farfield', evaluation_configurations, 'all_test', custom_name='gt_farfield')
 gt_farfield['model_path'] = None
 pipeline_config.append(Evaluation(**gt_farfield))

@@ -1,4 +1,4 @@
-from fitam.core.config.RadialMapConfig import RadialMapConfig, ClassificationConfig, FarFieldConfig, MapFusionType
+from fitam.core.config.RadialMapConfig import RadialMapConfig, ClassificationConfig, FarFieldConfig, MapFusionType, SpatialLabelConfig
 from fitam.core.common import dump_json_config
 from pathlib import Path
 import copy
@@ -86,3 +86,9 @@ for num_range_bins, num_heading_bins in zip(range_options, heading_options):
     range_heading_config.farfield_config.orientation_bin_size = 2*np.pi/num_heading_bins
     range_heading_config.farfield_config.image_context_size = 2*np.pi/num_heading_bins
     dump_json_config(range_heading_config, f'vary_range_heading/{num_range_bins}r{num_heading_bins}h_radial_map_config.json', overwrite=True)
+
+# save spatial config baseline
+spatial_config_baseline = copy.deepcopy(radial_config)
+spatial_config_baseline.farfield_config = SpatialLabelConfig()
+spatial_config_baseline.map_fusion_type = MapFusionType.MOST_RECENT
+dump_json_config(spatial_config_baseline, "spatial_label_radial_map_config.json", overwrite=True)

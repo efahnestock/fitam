@@ -1,4 +1,7 @@
 .pdm-python
+.devcontainer/
+.github/
+scratch/
 *.doit*
 results/
 .DS_Store
