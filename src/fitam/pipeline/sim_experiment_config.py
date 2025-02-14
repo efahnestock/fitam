@@ -371,6 +371,7 @@ gt_farfield = make_evaluation('core_farfield', evaluation_configurations, 'ablat
 gt_farfield['model_path'] = None
 pipeline_config.append(Evaluation(**gt_farfield))
 pipeline_config.append(Evaluation(**make_evaluation('core_farfield', evaluation_configurations, 'ablation')))
+pipeline_config.append(Evaluation(**make_evaluation('baseline_spatial_labels', evaluation_configurations, 'ablation')))
 
 
 # vary models

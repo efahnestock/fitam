@@ -10,7 +10,8 @@
             "image_slice_height_pixels": 10,
             "image_slice_width_pixels": 20,
             "obstacle_dialation_m": 1.0,
-            "num_footlines": 7
+            "num_footlines": 7,
+            "untraversable_cost_s_per_meter": 2.0
         }
     },
     "robot_max_speed": 5.0,

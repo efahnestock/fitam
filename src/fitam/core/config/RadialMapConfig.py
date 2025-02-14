@@ -18,6 +18,7 @@ class ImagePyramidConfig:
     image_slice_width_pixels: int = 20  # pixels
     obstacle_dialation_m: float = 1.0  # meters
     num_footlines: int = 7  # number of footlines
+    untraversable_cost_s_per_meter: float = 2.0
     
 @dataclass
 class SpatialLabelConfig:

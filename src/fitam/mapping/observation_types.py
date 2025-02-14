@@ -121,7 +121,6 @@ class GTObservation:
 
 
 class SpatialLabelObservation:
-    COST_OF_UNTRAVERSABLE = 1000  # seconds per meter
 
     def __init__(self,
                  center_idx: tuple[int, int],
@@ -129,7 +128,8 @@ class SpatialLabelObservation:
                  prediction_range_yaw: np.ndarray,
                  left_yaw_rad: float,
                  swath_library: SwathLibrary,
-                 max_speed: float,
+                 traversable_cost: float,
+                 untraversable_cost: float,
                  yaw_shift: float) -> None:
         self.center_idx = center_idx
         self.left_yaw_rad = left_yaw_rad
@@ -137,13 +137,12 @@ class SpatialLabelObservation:
         self.prediction_range_yaw = prediction_range_yaw
         self.swath_library = swath_library
         self.yaw_shift = yaw_shift
-        self.max_speed = max_speed
+        self.traversable_cost = traversable_cost
+        self.untraversable_cost = untraversable_cost
 
     def to_kalman_observation(self, map_shape: tuple) -> KalmanObservation:
 
         ranges, yaws = self.prediction_range_yaw[:, 0], wrap_angle_2pi(self.prediction_range_yaw[:, 1])
-
-
 
         yaw_bin_boundaries = np.sort(wrap_angle_2pi(np.linspace(self.left_yaw_rad, self.left_yaw_rad + 2 * np.pi, int(2 * np.pi / self.swath_library.angular_bin_size), endpoint=False)))
 
@@ -165,7 +164,7 @@ class SpatialLabelObservation:
                 swath = self.swath_library.get_swath(self.center_idx, sorted_ranges[i], yaw_boundary, map_shape)
                 i_out.append(swath[0])
                 j_out.append(swath[1])
-                cost_s_per_meter = 1 / self.max_speed if sorted_classifications[i] == 0 else self.COST_OF_UNTRAVERSABLE
+                cost_s_per_meter = self.traversable_cost if sorted_classifications[i] == 0 else self.untraversable_cost
                 cost_out.append(np.ones_like(swath[0]) * cost_s_per_meter)
 
                 # cast shadow when untraversable is classified

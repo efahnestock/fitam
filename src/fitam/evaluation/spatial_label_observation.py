@@ -50,7 +50,7 @@ def spatial_label_observe(logger: logging.Logger,
                 center_idx=center_idx,
                 model=model,
                 image_pyramid_config=radial_map_config.farfield_config.image_pyramid_config,
-                robot_max_speed_m_per_s=radial_map_config.robot_max_speed
+                traversable_cost_s_per_meter=radial_map_config.unknown_cost,
             )
             if eval_config.save_network_results:
                 pass
@@ -89,8 +89,8 @@ def spatial_label_calculate_observation(scene,
                                         model,
                                         swath_library: SwathLibrary,
                                         image_pyramid_config,
+                                        traversable_cost_s_per_meter: float,
                                         center_idx: tuple[int, int],
-                                        robot_max_speed_m_per_s: float,
                                         ) -> list[SpatialLabelObservation]:
     # render image
     # s = time.time()
@@ -111,7 +111,14 @@ def spatial_label_calculate_observation(scene,
 
     range_and_yaw_percentage[:, 1] = find_yaw_from_range_yaw_percentage(range_and_yaw_percentage, (left_yaw_rad, left_yaw_rad - 2 * np.pi))
     # s6 = time.time()
-    obs = SpatialLabelObservation(center_idx, patch_classes, range_and_yaw_percentage, left_yaw_rad, swath_library, robot_max_speed_m_per_s, left_yaw_rad)
+    obs = SpatialLabelObservation(center_idx, 
+                                  patch_classes, 
+                                  range_and_yaw_percentage, 
+                                  left_yaw_rad, 
+                                  swath_library, 
+                                  traversable_cost_s_per_meter,
+                                  image_pyramid_config.untraversable_cost_s_per_meter,
+                                  left_yaw_rad)
     # s7 = time.time()
     # print("Render time: ", s1 - s)
     # print("image pyramid time: ", s2 - s1)

@@ -1,5 +1,9 @@
 FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
 
+ARG USERNAME=developer
+ARG USER_UID=1000
+ARG USER_GID=1000
+
 
 # Install Python 3.10, pip, and other dependencies
 RUN apt-get update && \
@@ -58,9 +62,6 @@ RUN pdm install
 ENV PATH="/env_fitam/bin:$PATH"
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/software/VTK-modified-pano/build/build/lib.linux-x86_64-3.10/vtkmodules/"
 
-ARG USERNAME=developer
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
 
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME

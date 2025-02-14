@@ -1,10 +1,15 @@
 services:
   fitam:
-    build: .  # Build the Docker image from the Dockerfile in the current directory
+    build: 
+      context: .  # Build the Docker image from the Dockerfile in the current directory
+      args:
+        USERNAME: developer
+        USER_UID: ${UID:-1000}
+        USER_GID: ${GID:-1000}
+    user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - .:/fitam  # Mount the current directory to /fitam in the container
       - ~/.ssh:/home/developer/.ssh:ro  # mount ssh keys
-    user: "${UID}:${GID}"
     stdin_open: true  # Keep STDIN open even if not attached
     tty: true         # Allocate a pseudo-TTY for the container (for command-line access)
     working_dir: /fitam # Set the working directory inside the container
@@ -14,11 +19,16 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility  # Allow for GPU compute usage
 
   notebook:
-    build: .  # Build the Docker image from the Dockerfile in the current directory
+    build: 
+      context: .  # Build the Docker image from the Dockerfile in the current directory
+      args:
+        USERNAME: developer
+        USER_UID: ${UID:-1000}
+        USER_GID: ${GID:-1000}
+    user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - .:/fitam  # Mount the current directory to /fitam in the container
       - ~/.ssh:/home/developer/.ssh:ro  # mount ssh keys
-    
     stdin_open: true  # Keep STDIN open even if not attached
     tty: true         # Allocate a pseudo-TTY for the container (for command-line access)
     working_dir: /fitam # Set the working directory inside the container
