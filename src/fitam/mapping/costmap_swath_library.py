@@ -232,7 +232,6 @@ class SwathLibrary:
         indices = self.local_lines_map[key]
         tf_indices = self._transform_indices(indices, right_yaw, self.LOCAL_ANG_RES)
         return self._shift_swath(tf_indices, center_idx, map_shape)
-
     def get_observation_indices(self, center_idx: tuple, map_shape: tuple):
         return self._shift_swath(self.observation_indices, center_idx, map_shape)
 

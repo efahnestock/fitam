@@ -3,6 +3,8 @@ services:
     build: .  # Build the Docker image from the Dockerfile in the current directory
     volumes:
       - .:/fitam  # Mount the current directory to /fitam in the container
+      - ~/.ssh:/home/developer/.ssh:ro  # mount ssh keys
+    user: "1000:1000"
     stdin_open: true  # Keep STDIN open even if not attached
     tty: true         # Allocate a pseudo-TTY for the container (for command-line access)
     working_dir: /fitam # Set the working directory inside the container
@@ -15,6 +17,8 @@ services:
     build: .  # Build the Docker image from the Dockerfile in the current directory
     volumes:
       - .:/fitam  # Mount the current directory to /fitam in the container
+      - ~/.ssh:/home/developer/.ssh:ro  # mount ssh keys
+    user: "1000:1000"
     stdin_open: true  # Keep STDIN open even if not attached
     tty: true         # Allocate a pseudo-TTY for the container (for command-line access)
     working_dir: /fitam # Set the working directory inside the container

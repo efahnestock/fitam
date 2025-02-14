@@ -22,7 +22,7 @@ for config_path in glob_all_radial_configs:
     rel_path = config_path.relative_to(CONFIGS_DIR)
     if 'outdoor' in rel_path.parts:
         continue
-    if "spatial_label" in rel_path.parts:  # don't include the spatial baseline in the list 
+    if "spatial_label" in rel_path.parts:  # don't include the spatial baseline in the list
         continue
     all_radial_configs.append(config_path)
 
@@ -201,6 +201,24 @@ for radial_config_path in all_radial_configs:
         save_path=MODELS_DIR / dataset_name,
         train_config_path=CONFIGS_DIR / 'train_config_dino_classification.json',
         radial_config_path=CONFIGS_DIR / radial_config_path,
+    ))
+
+for noise_level in [0.0001, 0.001, 0.005, 0.01, 0.1]:
+    dataset_name = f"balt_noisy_odom_noise_{str(noise_level).replace('.', '_')}"
+    pipeline_config.append(Dataset(
+        name=dataset_name,
+        save_root_dir=DATASETS_DIR / dataset_name,
+        radial_map_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'radial_map_config.json',
+        dataset_config_path=CONFIGS_DIR / 'classification_dataset_config.json',
+        image_db_path=IMAGES_DIR / 'balt_standard' / f"noise_level_{str(noise_level).replace('.', '_')}.csv"
+    ))
+    pipeline_config.append(Training(
+        name=dataset_name,
+        dataset_csv_path=DATASETS_DIR / dataset_name / 'balanced_semantic_dataset.csv',
+        save_path=MODELS_DIR / dataset_name,
+        train_config_path=CONFIGS_DIR / 'train_config_dino_classification.json',
+        radial_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'radial_map_config.json',
+        ensemble_members=15,
     ))
 
 
