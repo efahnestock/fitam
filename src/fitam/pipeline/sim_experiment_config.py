@@ -203,7 +203,8 @@ for radial_config_path in all_radial_configs:
         radial_config_path=CONFIGS_DIR / radial_config_path,
     ))
 
-for noise_level in [0.0001, 0.001, 0.005, 0.01, 0.1]:
+noise_levels = [0.0001, 0.001, 0.005, 0.01, 0.1]
+for noise_level in noise_levels:
     dataset_name = f"balt_noisy_odom_noise_{str(noise_level).replace('.', '_')}"
     pipeline_config.append(Dataset(
         name=dataset_name,
@@ -398,6 +399,13 @@ for num_bins in range(4, 13):
     name = f"vary_max_distance_{num_bins}"
     options = make_evaluation('long_range', evaluation_configurations, 'ablation', custom_name=name)
     options['num_active_bins'] = num_bins
+    pipeline_config.append(Evaluation(**options))
+# vary noise in odometry
+for noise_level in noise_levels:
+    model_name = f"balt_noisy_odom_noise_{str(noise_level).replace('.', '_')}"
+    model_path = MODELS_DIR / model_name / f"{model_name}.ckpt"
+    options = make_evaluation("core_farfield", evaluation_configurations, 'ablation', custom_name=model_name)
+    options['model_path'] = model_path
     pipeline_config.append(Evaluation(**options))
 
 # vary map fusion
