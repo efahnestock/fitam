@@ -1,9 +1,11 @@
 from __future__ import annotations
 import os
+os.environ['OPENBLAS_NUM_THREADS'] = '2'
 import time
 import pandas as pd
 import argparse
 import sys
+import torch
 from pathlib import Path
 import matplotlib.pyplot as plt
 from os import PathLike
@@ -43,7 +45,7 @@ def worker(
     # set seeds for general setup
     set_all_seeds(42)
     seed_everything(42,  workers=True)
-    # torch.set_num_threads(2)
+    torch.set_num_threads(2)
 
     global_start_time = time.time()
     create_dir(save_root)
