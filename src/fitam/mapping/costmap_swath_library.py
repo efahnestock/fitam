@@ -4,10 +4,13 @@ import torch
 import pickle
 from fitam.core.data_tools import generate_range_and_bearing_tensors
 from fitam.core.common import wrap_angle_2pi, mask_radius_tensor, mask_yaw_tensor
-from fitam.core.config.RadialMapConfig import FarFieldConfig, RadialMapConfig
+from fitam.core.config.RadialMapConfig import FarFieldConfig, RadialMapConfig, SpatialLabelConfig
 
 
 def check_swath_against_config(swath: 'SwathLibrary', config: RadialMapConfig):
+    if isinstance(config.farfield_config, SpatialLabelConfig):
+        print("Warning: check_swath_against_config not implemented for spatial config, skipping check")
+        return True
     if swath is None:
         return False
     if swath.angular_resolution != config.swath_angular_resolution:
@@ -229,7 +232,6 @@ class SwathLibrary:
         indices = self.local_lines_map[key]
         tf_indices = self._transform_indices(indices, right_yaw, self.LOCAL_ANG_RES)
         return self._shift_swath(tf_indices, center_idx, map_shape)
-
     def get_observation_indices(self, center_idx: tuple, map_shape: tuple):
         return self._shift_swath(self.observation_indices, center_idx, map_shape)
 

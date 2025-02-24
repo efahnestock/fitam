@@ -1,4 +1,7 @@
 .pdm-python
+.devcontainer/
+.github/
+scratch/
 *.doit*
 results/
 .DS_Store
@@ -9,3 +12,4 @@ __pycache__/
 .ipynb_checkpoints/
 *.sw*
 *.pt
+.env

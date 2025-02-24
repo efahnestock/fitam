@@ -15,13 +15,13 @@ SPECULAR = 0.0
 # img_dims = (4 * 2048, 2 * 2048)
 # img_dims = (4 * 1024, 2 * 1024)
 # img_dims = (4 * 512, 2 * 512)
-img_height_deg = 10
-height_resolution = 128
+IMG_HEIGHT_DEG = 10
+IMG_HEIGHT_RESOLUTION = 128
 
 # at 10 deg, 256 height, 1536 side res, about 500mb gpu memory per process, around 0.01 second per image
 # roughly, doubling height doubles gpu memory
 
-img_dims = (int(height_resolution * 360 / img_height_deg), height_resolution)
+img_dims = (int(IMG_HEIGHT_RESOLUTION * 360 / IMG_HEIGHT_DEG), IMG_HEIGHT_RESOLUTION)
 
 class NonLeakingScene(window.Scene):
     def __init__(self, *args, **kwargs):
@@ -92,7 +92,7 @@ def enable_pano_pass(scene: window.Scene):
 
     panorama_mapper = roglvtk.vtkPanoramicProjectionPass()
     panorama_mapper.SetAngle(360.0)
-    panorama_mapper.SetvFOV(img_height_deg)
+    panorama_mapper.SetvFOV(IMG_HEIGHT_DEG)
     panorama_mapper.SetCubeResolution(1536)
     # panorama_mapper.SetGlobalWarningDisplay(1)
     pass_sequence = roglvtk.vtkSequencePass()

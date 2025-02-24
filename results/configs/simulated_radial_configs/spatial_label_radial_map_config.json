@@ -1,0 +1,39 @@
+{
+    "py/object": "fitam.core.config.RadialMapConfig.RadialMapConfig",
+    "farfield_config": {
+        "py/object": "fitam.core.config.RadialMapConfig.SpatialLabelConfig",
+        "image_pyramid_config": {
+            "py/object": "fitam.core.config.RadialMapConfig.ImagePyramidConfig",
+            "camera_height_m": 1.5,
+            "min_range_m": 25.0,
+            "max_range_m": 100.0,
+            "image_slice_height_pixels": 10,
+            "image_slice_width_pixels": 20,
+            "obstacle_dialation_m": 1.0,
+            "num_footlines": 7,
+            "untraversable_cost_s_per_meter": 2.0
+        }
+    },
+    "robot_max_speed": 5.0,
+    "observation_radius": 25,
+    "map_resolution": 1.0,
+    "swath_angular_resolution": 0.001,
+    "unknown_value": -1,
+    "unknown_cost": 1.0,
+    "process_noise": 0.001,
+    "variance_threshold": 0.4,
+    "observation_variance_threshold": 99999.9,
+    "map_fusion_type": {
+        "py/reduce": [
+            {
+                "py/type": "fitam.core.config.RadialMapConfig.MapFusionType"
+            },
+            {
+                "py/tuple": [
+                    "most_recent"
+                ]
+            }
+        ]
+    },
+    "use_occluded_local_observations": true
+}

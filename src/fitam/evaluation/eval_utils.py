@@ -26,7 +26,7 @@ from fitam.mapping.belief import Belief
 from fitam.planning.dstar_lite_interface import D_Star_Interface
 from fitam.mapping.costmap_swath_library import SwathLibrary
 from fitam.core.config.LoggingConfig import LoggingConfig
-from fitam.core.config.RadialMapConfig import RadialMapConfig, FarFieldConfig, MapFusionType
+from fitam.core.config.RadialMapConfig import RadialMapConfig, FarFieldConfig, MapFusionType, SpatialLabelConfig
 from fitam.evaluation.eval_data_structures import DebugTrialStatistics, CriticalTrialStatistics
 from fitam.planning.planner_general import snap_easl_state_to_planning_state, State
 from fitam.mapping.map_tools import find_map_bounds_around_point, find_close_crop_bounds_around_current_state
@@ -283,6 +283,9 @@ def plot_map_summary(
         max_obs_range = None
         if isinstance(ff_config, FarFieldConfig):
             max_obs_range = ff_config.range_bins[-1]
+        elif isinstance(ff_config, SpatialLabelConfig):
+            max_obs_range = ff_config.image_pyramid_config.max_range_m
+
         min_idxs, max_idxs = find_map_bounds_around_point(
             belief, center_idx, max_obs_range, False, min_idxs, max_idxs, True)
     for state in state_history:

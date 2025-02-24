@@ -330,6 +330,37 @@ class LandCoverComplexMap:
             output[self.masks[class_name]] = i
             class_index_map[class_name] = i
         return output, class_index_map
+    
+
+    def expand(self, new_shape: tuple[int, int]):
+        flat, names = self.create_flattened_class_map()
+        assert new_shape[0] % 2 == 0 and new_shape[1] % 2 == 0 and flat.shape[0] % 2 == 0 and flat.shape[1] % 2 == 0
+        unknown_index = names["unknown"]
+        i_initial = new_shape[0] // 2 - flat.shape[0] // 2
+        j_initial = new_shape[1] // 2 - flat.shape[1] // 2
+        new_flat = np.ones(new_shape, dtype=int) * unknown_index
+        new_flat[i_initial:i_initial+flat.shape[0], j_initial:j_initial+flat.shape[1]] = flat
+        self.update_from_flattened_class_map(new_flat, names)
+
+    def update_from_flattened_class_map(self, flattened, class_index_map):
+        for name, i in class_index_map.items():
+            self.masks[name] = flattened == i
+        self.semantic_image = flattened
+        self.class_map = class_index_map
+        return
+
+    def create_stacked_class_map(self):
+        num_layers = len(self.masks)
+        ex_mask = list(self.masks.values())[0]
+        out = np.zeros((num_layers, *ex_mask.shape), dtype=bool)
+        layer_names = sorted(list(self.masks.keys()))
+        for i, l in enumerate(layer_names):
+            out[i] = self.masks[l]
+        return out, layer_names
+    
+    def update_from_stacked_class_map(self, layers, layer_names):
+        for i, name in enumerate(layer_names):
+            self.masks[name] = layers[i]
 
     def create_occlusion_map(self):
         output = np.zeros(self.semantic_image.shape, dtype=bool)

@@ -22,6 +22,8 @@ for config_path in glob_all_radial_configs:
     rel_path = config_path.relative_to(CONFIGS_DIR)
     if 'outdoor' in rel_path.parts:
         continue
+    if "spatial_label" in rel_path.parts:  # don't include the spatial baseline in the list
+        continue
     all_radial_configs.append(config_path)
 
 for config_path in all_radial_configs:
@@ -201,6 +203,25 @@ for radial_config_path in all_radial_configs:
         radial_config_path=CONFIGS_DIR / radial_config_path,
     ))
 
+noise_levels = [0.0001, 0.001, 0.005, 0.01, 0.1]
+for noise_level in noise_levels:
+    dataset_name = f"balt_noisy_odom_noise_{str(noise_level).replace('.', '_')}"
+    pipeline_config.append(Dataset(
+        name=dataset_name,
+        save_root_dir=DATASETS_DIR / dataset_name,
+        radial_map_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'radial_map_config.json',
+        dataset_config_path=CONFIGS_DIR / 'classification_dataset_config.json',
+        image_db_path=IMAGES_DIR / 'balt_standard' / f"noise_level_{str(noise_level).replace('.', '_')}.csv"
+    ))
+    pipeline_config.append(Training(
+        name=dataset_name,
+        dataset_csv_path=DATASETS_DIR / dataset_name / 'balanced_semantic_dataset.csv',
+        save_path=MODELS_DIR / dataset_name,
+        train_config_path=CONFIGS_DIR / 'train_config_dino_classification.json',
+        radial_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'radial_map_config.json',
+        ensemble_members=15,
+    ))
+
 
 all_test_evaluation_request_paths = sorted(list((EVALUATION_REQUESTS_DIR / "all_test_counties").glob("*.json")))
 all_ablation_evaluation_request_paths = sorted(list((EVALUATION_REQUESTS_DIR / "ablation").glob("*.json")))
@@ -215,6 +236,16 @@ evaluation_configurations = {
         training_config_path=None,
         compute_config_path=CONFIGS_DIR / 'compute_config.json',
         swath_library_path=SWATHS_DIR / 'simulated_radial_configs' / 'baseline_radial_map_config.pkl',
+        dependent_task=None,
+    ),
+    'baseline_spatial_labels': dict(
+        model_path=MODELS_DIR / 'spatial_label_propagation' / 'best_model.pt',
+        dataset_config_path=None,
+        radial_map_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'spatial_label_radial_map_config.json',
+        logging_config_path=CONFIGS_DIR / 'logging_config.json',
+        training_config_path=None,
+        compute_config_path=CONFIGS_DIR / 'compute_config.json',
+        swath_library_path=SWATHS_DIR / 'simulated_radial_configs' / 'spatial_label_radial_map_config.pkl',
         dependent_task=None,
     ),
     'perfect_vision': dict(
@@ -341,6 +372,7 @@ gt_farfield = make_evaluation('core_farfield', evaluation_configurations, 'ablat
 gt_farfield['model_path'] = None
 pipeline_config.append(Evaluation(**gt_farfield))
 pipeline_config.append(Evaluation(**make_evaluation('core_farfield', evaluation_configurations, 'ablation')))
+pipeline_config.append(Evaluation(**make_evaluation('baseline_spatial_labels', evaluation_configurations, 'ablation')))
 
 
 # vary models
@@ -367,6 +399,13 @@ for num_bins in range(4, 13):
     name = f"vary_max_distance_{num_bins}"
     options = make_evaluation('long_range', evaluation_configurations, 'ablation', custom_name=name)
     options['num_active_bins'] = num_bins
+    pipeline_config.append(Evaluation(**options))
+# vary noise in odometry
+for noise_level in noise_levels:
+    model_name = f"balt_noisy_odom_noise_{str(noise_level).replace('.', '_')}"
+    model_path = MODELS_DIR / model_name / f"{model_name}.ckpt"
+    options = make_evaluation("core_farfield", evaluation_configurations, 'ablation', custom_name=model_name)
+    options['model_path'] = model_path
     pipeline_config.append(Evaluation(**options))
 
 # vary map fusion
@@ -399,6 +438,7 @@ pipeline_config.append(Evaluation(**threshold))
 pipeline_config.append(Evaluation(**make_evaluation('baseline', evaluation_configurations, 'all_test')))
 pipeline_config.append(Evaluation(**make_evaluation('perfect_vision', evaluation_configurations, 'all_test')))
 pipeline_config.append(Evaluation(**make_evaluation('core_farfield', evaluation_configurations, 'all_test')))
+pipeline_config.append(Evaluation(**make_evaluation('baseline_spatial_labels', evaluation_configurations, 'all_test')))
 gt_farfield = make_evaluation('core_farfield', evaluation_configurations, 'all_test', custom_name='gt_farfield')
 gt_farfield['model_path'] = None
 pipeline_config.append(Evaluation(**gt_farfield))

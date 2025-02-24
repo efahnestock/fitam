@@ -62,9 +62,10 @@ def crop_image_for_sector(image, image_yaws: tuple, cropped_yaws: tuple, img_wid
     norm_image_yaws = [wrap_angle_2pi(image_yaws[0]), wrap_angle_2pi(image_yaws[1])]  # [0, 2pi]
     norm_cropped_yaws = [wrap_angle_2pi(cropped_yaws[0]), wrap_angle_2pi(cropped_yaws[1])]  # [0, 2pi]
     assert check_range_within_range(norm_image_yaws, norm_cropped_yaws), f"cropped_yaws must be within image_yaws. image_yaws: {norm_image_yaws}, cropped_yaws: {norm_cropped_yaws}"
-    width_yaw_img = angle_between_lr_yaw(*image_yaws)
-    # print(f"width_yaw_img: {width_yaw_img}")
-
+    if np.isclose(image_yaws[0], image_yaws[1], atol=1e-8): # if same value, 2pi apart is assumed
+        width_yaw_img = 2 * np.pi
+    else:
+        width_yaw_img = angle_between_lr_yaw(*image_yaws)
     output_width_pixels = int(img_width_yaw / width_yaw_img * image_width_pixels)  # width in pixels
     # print(f"output_width_pixels: {output_width_pixels}")
 

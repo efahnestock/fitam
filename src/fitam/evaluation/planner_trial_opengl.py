@@ -1,9 +1,11 @@
 from __future__ import annotations
 import os
+os.environ['OPENBLAS_NUM_THREADS'] = '2'
 import time
 import pandas as pd
 import argparse
 import sys
+import torch
 from pathlib import Path
 import matplotlib.pyplot as plt
 from os import PathLike
@@ -17,6 +19,7 @@ from fitam.mapping.local_observation import local_observe_occlusions, local_perf
 from fitam.evaluation.eval_utils import setup_trial_assets, filter_job_numbers, change_logger_to_trial_dir, log_status_and_change_logger, save_results, plot_map_summary, get_model_md5
 from fitam.evaluation.eval_data_structures import setup_trial_data_structures, setup_trial_directories, setup_worker_assets_and_config, compile_results, ObserveFunctionType
 from fitam.evaluation.eval_observation import observe
+from fitam.evaluation.spatial_label_observation import spatial_label_observe
 from fitam.evaluation.eval_movement import move
 
 
@@ -42,7 +45,7 @@ def worker(
     # set seeds for general setup
     set_all_seeds(42)
     seed_everything(42,  workers=True)
-    # torch.set_num_threads(2)
+    torch.set_num_threads(2)
 
     global_start_time = time.time()
     create_dir(save_root)
@@ -148,6 +151,14 @@ def worker(
                         radial_map_config=worker_assets.radial_map_config, eval_config=worker_assets.eval_config, train_config=worker_assets.training_config,
                         camera_height=camera_height, num_active_bins=num_active_bins, export_dataset=worker_assets.eval_config.save_dataset,
                         class_map=class_map, class_index_to_name_map=class_index_to_name_map)
+                
+            elif worker_assets.observe_function_type == ObserveFunctionType.SPATIAL_LABEL:
+                spatial_label_observe(logger=logger, current_state=current_state, replan_index=replan_index,
+                        scene=worker_assets.scene, trial_directories=trial_directories, belief=local_costmap,
+                        master_costmap=worker_assets.master_costmap, model=worker_assets.model, swath_library=worker_assets.swath_library,
+                        device=worker_assets.device, use_renderer=worker_assets.use_renderer,
+                        radial_map_config=worker_assets.radial_map_config, eval_config=worker_assets.eval_config,
+                        )
 
             # do local observations
             current_planning_state = snap_easl_state_to_planning_state(

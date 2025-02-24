@@ -82,6 +82,7 @@ def set_seed(seed):
 
 # from https://stackoverflow.com/questions/2125702/how-to-suppress-console-output-in-python
 
+
 @contextmanager
 def suppress_stdout():
     with open(os.devnull, "w") as devnull:
@@ -168,7 +169,6 @@ def generate_range_and_bearing_tensors(center_idx, map_size_pix: int, map_resolu
     return radius_matrix, yaw_matrix
 
 
-
 def mask_yaw_tensor(yaw_tensor, yaw_range: tuple):
     assert yaw_range[0] >= 0 and yaw_range[0] <= 2*np.pi
     assert yaw_range[1] >= 0 and yaw_range[1] <= 2*np.pi
@@ -178,7 +178,6 @@ def mask_yaw_tensor(yaw_tensor, yaw_range: tuple):
         # print('wrapping around')
         yaw_mask = (yaw_tensor >= yaw_range[0]) | (yaw_tensor <= yaw_range[1])
     return yaw_mask
-
 
 
 def mask_radius_tensor(radius_tensor, radius_range: tuple):
@@ -467,3 +466,35 @@ def numpy_log_softmax(x): return x - np.logaddexp.reduce(x, axis=-1, keepdims=Tr
 
 
 def numpy_softmax(x): return np.exp(numpy_log_softmax(x))
+
+
+def floor_to_array(x: np.ndarray, floor_values: np.ndarray) -> np.ndarray:
+    """Floor each element in x to closest smaller or equal value in floor_values.
+
+    Args:
+        x: Input array to be floored
+        floor_values: Array of values to floor to (must be sorted ascending)
+
+    Returns:
+        Array with same shape as x, with values floored to closest values in floor_values
+    """
+    # Ensure floor_values is sorted
+    if not np.all(np.diff(floor_values) >= 0):
+        raise ValueError("floor_values must be sorted in ascending order")
+
+    # Reshape for broadcasting
+    x_flat = x.ravel()[:, None]
+
+    # Find valid floor values (largest value in floor_values <= x)
+    valid_floors = x_flat >= floor_values
+
+    # Get indices of closest floor values
+    floor_indices = (valid_floors).sum(axis=1) - 1
+
+    # Handle case where value is smaller than all floor values
+    floor_indices = np.maximum(floor_indices, 0)
+
+    # Get floored values and reshape to original shape
+    result = floor_values[floor_indices].reshape(x.shape)
+
+    return result

@@ -8,6 +8,24 @@ from typing import Optional
 from enum import Enum
 
 
+### SPATIAL LABELING BASELINE
+@dataclass
+class ImagePyramidConfig:
+    camera_height_m: float = 1.5  # meters
+    min_range_m: float = 25.0  # meters
+    max_range_m: float = 100.0  # meters
+    image_slice_height_pixels: int = 10  # pixels
+    image_slice_width_pixels: int = 20  # pixels
+    obstacle_dialation_m: float = 1.0  # meters
+    num_footlines: int = 7  # number of footlines
+    untraversable_cost_s_per_meter: float = 2.0
+    
+@dataclass
+class SpatialLabelConfig:
+    image_pyramid_config: ImagePyramidConfig = field(default_factory=lambda: ImagePyramidConfig())
+
+
+
 @dataclass
 class ClassificationConfig:
     # class 0 maps to class_ranges[0] <= speed < class_ranges[1]
@@ -36,6 +54,7 @@ class FarFieldConfig:
         return len(self.range_bins) - 1
 
 
+
 class MapFusionType(Enum):
     KALMAN = "kalman"
     MIN_ENTROPY = "min_entropy"
@@ -45,7 +64,7 @@ class MapFusionType(Enum):
 
 @dataclass
 class RadialMapConfig:
-    farfield_config: Optional[FarFieldConfig] = None
+    farfield_config: Optional[FarFieldConfig | SpatialLabelConfig] = None
     robot_max_speed: float = 5.0  # meters per second
     observation_radius: float = 25  # in meters
     map_resolution: float = 1.  # in meters

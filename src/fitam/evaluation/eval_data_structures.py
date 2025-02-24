@@ -14,6 +14,7 @@ from fitam.mapping.land_cover_complex_map import LandCoverComplexMap
 from fitam.planning.planner_general import l2_dist_heuristic, list_of_state_to_tuples, State
 from fitam.mapping.belief import Belief
 from fitam.learning.load_by_name import load_model
+from fitam.learning.spatial_label_training import load_spatial_label_model
 from fitam.core.common import get_device, create_dir, load_json_config
 from fitam.planning.astar import A_Star
 from fitam.mapping.costmap import OccupancyGrid
@@ -22,7 +23,7 @@ from fitam.mapping.opengl_scene_rendering import create_scene
 from fitam.core.product_structures import EvaluationRequest
 from fitam.core.config.EvaluationConfig import EvaluationConfig
 from fitam.core.config.LoggingConfig import LoggingConfig
-from fitam.core.config.RadialMapConfig import RadialMapConfig, FarFieldConfig
+from fitam.core.config.RadialMapConfig import RadialMapConfig, FarFieldConfig, SpatialLabelConfig
 from fitam.core.config.TrainConfig import TrainConfig
 from fitam.core.config.DatasetConfig import DatasetConfig
 from fitam import MAPS_DIR
@@ -30,6 +31,7 @@ from fitam import MAPS_DIR
 
 class ObserveFunctionType(Enum):
     FARFIELD = "farfield"
+    SPATIAL_LABEL = "spatial_label"
     LOCAL = "local"
 
 
@@ -152,6 +154,14 @@ def setup_worker_assets_and_config(
             model.eval()
             if device.type == 'cuda':
                 model.cuda()
+    elif isinstance(radial_map_config.farfield_config, SpatialLabelConfig):
+        observe_function_type = ObserveFunctionType.SPATIAL_LABEL
+        scene = create_scene(complex_map, complex_map_path / f"{complex_map_path.name}.png")
+        model = load_spatial_label_model(model_path)
+        model.eval()
+        if device.type == 'cuda':
+            model.cuda()
+
     else:
         observe_function_type = ObserveFunctionType.LOCAL
 
