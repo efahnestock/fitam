@@ -11,11 +11,11 @@ While navigating unknown environments, robots rely primarily on proximate featur
 
 Requires Docker, nvidia-docker installed.
 
-To run the docker environment, run the following command:
-```docker compose run fitam```
+To run the docker environment, run the following command to ensure your UID/GID are passed correctly:
+```./scripts/run_docker.sh```
 
 To run a jupyter notebook server in the `fitam` environment run:
-```TOKEN=your_jupyter_token docker compose run --service-ports notebook```
+```TOKEN=your_jupyter_token ./scripts/run_docker.sh --service-ports notebook```
 
 Confirm your GPU is visible by running `nvidia-smi`. Execute all tasks below in the docker environment. All available tasks can be seen by running `doit list`. 
 
@@ -34,9 +34,6 @@ Inputs:
 Outputs:
 - Swath library
 
-To build an individual swath library, run the following command:
-
-```python -m fitam.maps.costmap_swath_library -c <path to config> -o <output path>```
 
 To build all swath libraries, run the following command:
 
