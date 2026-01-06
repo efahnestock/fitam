@@ -1,43 +1,36 @@
 services:
   fitam:
     build: 
-      context: .  # Build the Docker image from the Dockerfile in the current directory
-      args:
-        USERNAME: developer
-        USER_UID: ${UID:-1000}
-        USER_GID: ${GID:-1000}
-    user: "${UID:-1000}:${GID:-1000}"
+      context: .
     volumes:
-      - .:/fitam  # Mount the current directory to /fitam in the container
-      - ~/.ssh:/home/developer/.ssh:ro  # mount ssh keys
-    stdin_open: true  # Keep STDIN open even if not attached
-    tty: true         # Allocate a pseudo-TTY for the container (for command-line access)
-    working_dir: /fitam # Set the working directory inside the container
-    runtime: nvidia   # Use Nvidia runtime for GPU access
+      - .:/fitam
+      - ~/.ssh:/home/developer/.ssh:ro
+    stdin_open: true
+    tty: true
+    working_dir: /fitam
+    runtime: nvidia
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all  # Make all GPUs visible
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility  # Allow for GPU compute usage
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - LOCAL_UID=${UID:-1000}
+      - LOCAL_GID=${GID:-1000}
 
   notebook:
     build: 
-      context: .  # Build the Docker image from the Dockerfile in the current directory
-      args:
-        USERNAME: developer
-        USER_UID: ${UID:-1000}
-        USER_GID: ${GID:-1000}
-    user: "${UID:-1000}:${GID:-1000}"
+      context: .
     volumes:
-      - .:/fitam  # Mount the current directory to /fitam in the container
-      - ~/.ssh:/home/developer/.ssh:ro  # mount ssh keys
-    stdin_open: true  # Keep STDIN open even if not attached
-    tty: true         # Allocate a pseudo-TTY for the container (for command-line access)
-    working_dir: /fitam # Set the working directory inside the container
-    runtime: nvidia   # Use Nvidia runtime for GPU access
+      - .:/fitam
+      - ~/.ssh:/home/developer/.ssh:ro
+    stdin_open: true
+    tty: true
+    working_dir: /fitam
+    runtime: nvidia
     ports:
       - "8888:8888"
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all  # Make all GPUs visible
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility  # Allow for GPU compute usage
-      - JUPYTER_TOKEN=${TOKEN}  # Set the Jupyter notebook token
-
-    command: "jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root --no-browser --notebook-dir=/fitam"  # Start Jupyter notebook
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - JUPYTER_TOKEN=${TOKEN}
+      - LOCAL_UID=${UID:-1000}
+      - LOCAL_GID=${GID:-1000}
+    command: ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--notebook-dir=/fitam"]
