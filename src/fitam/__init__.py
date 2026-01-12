@@ -6,6 +6,7 @@ FITAM_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpat
 SWATHS_DIR = pathlib.Path(FITAM_ROOT_DIR, 'results', 'swaths')
 CONFIGS_DIR = pathlib.Path(FITAM_ROOT_DIR, 'results', 'configs')
 MAPS_DIR = pathlib.Path(FITAM_ROOT_DIR, 'results', 'maps')
+RADIAL_LEARNING_COSTMAP_DIR = pathlib.Path(FITAM_ROOT_DIR, 'data_radial_learning', 'costmaps')
 SAMPLED_LOCATIONS_DIR = pathlib.Path(FITAM_ROOT_DIR, 'results', 'sampled_locations')
 IMAGES_DIR = pathlib.Path(FITAM_ROOT_DIR, 'results', 'images')
 DATASETS_DIR = pathlib.Path(FITAM_ROOT_DIR, 'results', 'datasets')

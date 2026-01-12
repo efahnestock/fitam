@@ -39,6 +39,7 @@ import matplotlib.image
 import matplotlib.patches as mpatches
 from fitam.planning.planner_general import State
 from fitam.core.config.EnvConfig import EnvConfig, RealEnvConfig
+from fitam import RADIAL_LEARNING_COSTMAP_DIR
 from fitam import MAPS_DIR
 from fitam.mapping.costmap import OccupancyGrid
 from fitam.core.common import wrap_angle_2pi
@@ -625,7 +626,8 @@ class LandCoverComplexMap:
             plt.show()
         return
 
-    def save_map(self, name: str, path: str = MAPS_DIR, overwrite=False):
+    # def save_map(self, name: str, path: str = MAPS_DIR, overwrite=False):
+    def save_map(self, name: str, path: str = RADIAL_LEARNING_COSTMAP_DIR, overwrite=False):
         """Saves the ComplexMap class to a pickle file, and saves the floormask"""
         if os.path.exists(os.path.join(path, name)):
             if not overwrite:

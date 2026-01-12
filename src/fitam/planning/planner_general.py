@@ -1,6 +1,48 @@
 from __future__ import annotations
 import numpy as np
+import itertools
+import heapq
 from dataclasses import dataclass
+
+class PriorityQueue:
+
+    def __init__(self):
+        self.pq = []
+        self.entry_finder = {}
+        self.REMOVED = '<removed-task>'
+        self.counter = itertools.count()
+
+    def add_task(self, task, priority: float):
+        'Add a new task or update the priority of an existing task'
+        if task in self.entry_finder:
+            self.remove_task(task)
+        count = next(self.counter)
+        entry = [priority, count, task]
+        self.entry_finder[task] = entry
+        heapq.heappush(self.pq, entry)
+
+    def peek_task(self):
+        'Return the lowest priority task. Raise KeyError if empty.'
+        if len(self.pq) == 0:
+            raise KeyError('peek from an empty priority queue')
+        return self.pq[0]
+
+    def remove_task(self, task):
+        'Mark an existing task as REMOVED.  Raise KeyError if not found.'
+        entry = self.entry_finder.pop(task)
+        entry[-1] = self.REMOVED
+
+    def pop_task(self):
+        'Remove and return the lowest priority task. Raise KeyError if empty.'
+        while self.pq:
+            priority, count, task = heapq.heappop(self.pq)
+            if task is not self.REMOVED:
+                del self.entry_finder[task]
+                return task
+        raise KeyError('pop from an empty priority queue')
+
+    def __len__(self):
+        return len(self.pq)
 
 
 @dataclass

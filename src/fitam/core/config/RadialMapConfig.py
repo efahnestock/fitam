@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from numpy.typing import NDArray
 from typing import Optional
+from pathlib import Path
 from enum import Enum
 
 
@@ -53,7 +54,20 @@ class FarFieldConfig:
     def num_range_bins(self):
         return len(self.range_bins) - 1
 
-
+@dataclass
+class DiffusionConfig:
+    diffusion_image_shape: tuple # (height, width)
+    diffusion_image_size_m: tuple # (height, width) in meters
+    diffusion_model_type: str
+    batch_size: int
+    palette_path: Path
+    color_lut_path: Path
+    observation_cadence: int = 1
+    save_mask_images: bool = False
+    save_diffusion_batch: bool = False
+    save_class_images: bool = False
+    save_cost_uncertainty_images: bool = False
+    save_root: Path = Path("/tmp/diffusion")
 
 class MapFusionType(Enum):
     KALMAN = "kalman"
@@ -64,7 +78,8 @@ class MapFusionType(Enum):
 
 @dataclass
 class RadialMapConfig:
-    farfield_config: Optional[FarFieldConfig | SpatialLabelConfig] = None
+    # farfield_config: Optional[FarFieldConfig | SpatialLabelConfig] = None
+    farfield_config: Optional[FarFieldConfig | DiffusionConfig] = None
     robot_max_speed: float = 5.0  # meters per second
     observation_radius: float = 25  # in meters
     map_resolution: float = 1.  # in meters

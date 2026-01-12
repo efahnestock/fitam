@@ -22,6 +22,10 @@ from fitam.evaluation.eval_observation import observe
 from fitam.evaluation.spatial_label_observation import spatial_label_observe
 from fitam.evaluation.eval_movement import move
 
+from fitam.evaluation.eval_inpainting_observation import observe as inpaint_observe
+from fitam.sim.diffusion_interface import DiffusionInterface, ModelType
+
+
 
 def worker(
     job_numbers: list[int],
@@ -45,7 +49,7 @@ def worker(
     # set seeds for general setup
     set_all_seeds(42)
     seed_everything(42,  workers=True)
-    torch.set_num_threads(2)
+    # torch.set_num_threads(2)
 
     global_start_time = time.time()
     create_dir(save_root)
@@ -79,6 +83,8 @@ def worker(
     # check swath validity
     if not check_swath_against_config(worker_assets.swath_library, worker_assets.radial_map_config):
         raise RuntimeError(f"Swath library {swath_library_path} is not compatible with radial map config {radial_costmap_config_path}")
+    elif worker_assets.observe_function_type == ObserveFunctionType.DIFFUSION:
+        full_overhead = worker_assets.land_cover_complex_map.create_floormask(include_only_visible=True)
 
     if dump_panos == True:
         worker_assets.eval_config.save_panoramas = dump_panos
@@ -109,6 +115,22 @@ def worker(
         trial_directories = setup_trial_directories(save_root, query_i, worker_assets.eval_config)
         change_logger_to_trial_dir(
             logger, trial_directories.query_results_dir, worker_assets.logging_config, query_i)
+        if worker_assets.observe_function_type == ObserveFunctionType.DIFFUSION:
+            # overwrite saving path
+            worker_assets.radial_map_config.farfield_config.save_root = trial_directories.base_network_results_path
+            print('model path', model_path)
+            model_type = None
+            if worker_assets.radial_map_config.farfield_config.diffusion_model_type == "mcmc":
+                model_type = ModelType.MCMC
+            elif worker_assets.radial_map_config.farfield_config.diffusion_model_type == "conditional":
+                model_type = ModelType.CONDITIONAL
+            else:
+                raise RuntimeError(f"Unknown model type {worker_assets.radial_map_config.farfield_config.diffusion_model_type}")
+            diffusion_interface = DiffusionInterface(
+                model_path=model_path,
+                model_type=model_type,
+                config=worker_assets.radial_map_config.farfield_config,
+            )
         cts, dts = setup_trial_data_structures(worker_assets.eval_request, query_i)
         logger.debug(f"####Starting job {query_i} with eval request path {eval_request_path} and save root {save_root}. LCM path is {worker_assets.eval_request.map_path}")
         env_vars = dict(os.environ)
@@ -152,13 +174,25 @@ def worker(
                         camera_height=camera_height, num_active_bins=num_active_bins, export_dataset=worker_assets.eval_config.save_dataset,
                         class_map=class_map, class_index_to_name_map=class_index_to_name_map)
                 
-            elif worker_assets.observe_function_type == ObserveFunctionType.SPATIAL_LABEL:
-                spatial_label_observe(logger=logger, current_state=current_state, replan_index=replan_index,
-                        scene=worker_assets.scene, trial_directories=trial_directories, belief=local_costmap,
-                        master_costmap=worker_assets.master_costmap, model=worker_assets.model, swath_library=worker_assets.swath_library,
-                        device=worker_assets.device, use_renderer=worker_assets.use_renderer,
-                        radial_map_config=worker_assets.radial_map_config, eval_config=worker_assets.eval_config,
-                        )
+            # elif worker_assets.observe_function_type == ObserveFunctionType.SPATIAL_LABEL:
+            #     spatial_label_observe(logger=logger, current_state=current_state, replan_index=replan_index,
+            #             scene=worker_assets.scene, trial_directories=trial_directories, belief=local_costmap,
+            #             master_costmap=worker_assets.master_costmap, model=worker_assets.model, swath_library=worker_assets.swath_library,
+            #             device=worker_assets.device, use_renderer=worker_assets.use_renderer,
+            #             radial_map_config=worker_assets.radial_map_config, eval_config=worker_assets.eval_config,
+            #             )
+            elif worker_assets.observe_function_type == ObserveFunctionType.DIFFUSION:
+                inpaint_observe(
+                    diffusion_interface=diffusion_interface,
+                    logger=logger,
+                    current_state=current_state,
+                    belief=local_costmap,
+                    semantic_overhead=full_overhead,
+                    replan_index=replan_index,
+                    master_costmap=worker_assets.master_costmap,
+                    observed_states=worker_assets.observed_states,
+                    planner=planner,
+                )
 
             # do local observations
             current_planning_state = snap_easl_state_to_planning_state(
