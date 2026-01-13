@@ -6,9 +6,11 @@ RUN apt-get update && \
     python3.10 \
     python3.10-venv \
     python3.10-dev \
+    sudo \
     python3-pip \
     build-essential \
     cmake \
+    curl \
     git \
     libxt-dev \
     libglu1-mesa-dev \
@@ -33,41 +35,52 @@ RUN apt-get update && \
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 && \
     update-alternatives --install /usr/bin/pip3 pip3 /usr/bin/pip3.10 1
 
-# Install PDM
-RUN pip3 install pdm
-
-# Install modified VTK
-WORKDIR /software
-RUN git clone -b modify-pano-rendering https://github.com/efahnestock/VTK-modified-pano.git
-WORKDIR /software/VTK-modified-pano
-RUN pip3 install .
-
-# Create python virtualenv (so pdm doesn't place one in the mounted /fitam directory)
-WORKDIR /
-RUN python3 -m venv /env_fitam
-
-WORKDIR /software
-COPY learning_env_structure /software/learning_env_structure
-#WORKDIR /software/learning_env_structure
-#RUN /env_fitam/bin/pip install -e .
-
-WORKDIR /fitam
-ENV PDM_CHECK_UPDATE=false
-COPY pyproject.toml pdm.lock README.md /fitam/
-COPY src/ /fitam/src
-
-RUN pdm use -f /env_fitam/
-RUN pdm install
-ENV PATH="/env_fitam/bin:$PATH"
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/software/VTK-modified-pano/build/build/lib.linux-x86_64-3.10/vtkmodules/"
-
 # Create a default user (will be modified at runtime by entrypoint)
 RUN groupadd --gid 1000 developer \
     && useradd --uid 1000 --gid 1000 -m -s /bin/bash developer
 
+RUN usermod -aG sudo developer
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+RUN mkdir /software && chown -R developer:developer /software
+
+
+
+USER developer
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/home/developer/.local/bin:$PATH"
+
+# Install modified VTK
+#WORKDIR /software
+#RUN git clone -b modify-pano-rendering https://github.com/efahnestock/VTK-modified-pano.git
+#WORKDIR /software/VTK-modified-pano
+#RUN pip3 install .
+
+# Create python virtualenv (so uv doesn't place one in the mounted /fitam directory)
+WORKDIR /
+RUN uv venv /software/env_fitam
+
+WORKDIR /software
+COPY ./learning_env_structure/ /software/learning_env_structure/
+RUN sudo chown -R developer:developer /software
+#WORKDIR /software/learning_env_structure
+#RUN /env_fitam/bin/pip install -e .
+
+WORKDIR /fitam
+ENV UV_PROJECT_ENVIRONMENT=/software/env_fitam
+COPY --chown=developer:developer pyproject.toml README.md /fitam/
+COPY --chown=developer:developer src/ /fitam/src
+
+RUN uv sync
+ENV PATH="/software/env_fitam/bin:$PATH"
+#ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/software/VTK-modified-pano/build/build/lib.linux-x86_64-3.10/vtkmodules/"
+
+
 # Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sudo chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash"]
