@@ -15,6 +15,7 @@ dependencies = [
     "doit>=0.36.0",
     "dash>=2.16.1",
     "diskcache>=5.6.3",
+    "learning-env-structure @ file:///software/learning_env_structure",
     "dstar-lite @ git+https://github.com/efahnestock/dstar-lite-python.git",
     "pyastar2d @ git+https://github.com/efahnestock/pyastar2d.git",
     "nbstripout>=0.7.1",
@@ -45,3 +46,4 @@ build-backend = "setuptools.build_meta"
 
 [tool.pdm]
 distribution = true
+

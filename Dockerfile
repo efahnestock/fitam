@@ -46,6 +46,11 @@ RUN pip3 install .
 WORKDIR /
 RUN python3 -m venv /env_fitam
 
+WORKDIR /software
+COPY learning_env_structure /software/learning_env_structure
+#WORKDIR /software/learning_env_structure
+#RUN /env_fitam/bin/pip install -e .
+
 WORKDIR /fitam
 ENV PDM_CHECK_UPDATE=false
 COPY pyproject.toml pdm.lock README.md /fitam/
