@@ -8,7 +8,7 @@ from scipy.ndimage import binary_dilation
 from fitam import MAPS_DIR, IMAGES_DIR
 from fitam.mapping.land_cover_complex_map import LandCoverComplexMap
 from fitam.mapping.costmap import OccupancyGrid
-from fitam.mapping.opengl_scene_rendering import create_scene, render_scene, IMG_HEIGHT_DEG, IMG_HEIGHT_RESOLUTION
+#from fitam.mapping.opengl_scene_rendering import IMG_HEIGHT_DEG, IMG_HEIGHT_RESOLUTION #create_scene, render_scene, IMG_HEIGHT_DEG, IMG_HEIGHT_RESOLUTION
 from fitam.core.common import angle_between_lr_yaw
 from fitam.core.config.RadialMapConfig import FarFieldConfig, ImagePyramidConfig
 
@@ -16,6 +16,8 @@ from fitam.core.config.RadialMapConfig import FarFieldConfig, ImagePyramidConfig
 from PIL import Image
 import matplotlib.pyplot as plt
 
+IMG_HEIGHT_DEG = 10
+IMG_HEIGHT_RESOLUTION = 128
 
 def calculate_footline_distances(min_range_m, max_range_m, num_footlines: int):
     ln_A = np.log(min_range_m)

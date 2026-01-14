@@ -1,7 +1,7 @@
 from __future__ import annotations
 from fitam.mapping.spatial_label_general import create_image_pyramid, image_pyramid_to_batch, find_yaw_from_range_yaw_percentage
 from fitam.learning.spatial_label_training import preprocess_image_pyramid_batch
-from fury import window
+#from fury import window
 import torch.nn as nn
 import numpy as np
 import time
@@ -11,7 +11,7 @@ from fitam.mapping.observation_types import SpatialLabelObservation
 from fitam.planning.planner_general import snap_easl_state_to_planning_state, State
 from fitam.mapping.costmap import OccupancyGrid
 from fitam.mapping.costmap_swath_library import SwathLibrary
-from fitam.mapping.opengl_scene_rendering import render_scene
+#from fitam.mapping.opengl_scene_rendering import render_scene
 from fitam.core.config.EvaluationConfig import EvaluationConfig
 from fitam.core.config.RadialMapConfig import RadialMapConfig
 from fitam.evaluation.eval_data_structures import TrialDirectories
@@ -21,7 +21,7 @@ from fitam.mapping.belief import Belief
 def spatial_label_observe(logger: logging.Logger,
                           current_state: State,
                           replan_index: int,
-                          scene: window.Scene,
+                          scene,
                           trial_directories: TrialDirectories,
                           belief: Belief,
                           model: nn.Module,
@@ -92,39 +92,40 @@ def spatial_label_calculate_observation(scene,
                                         traversable_cost_s_per_meter: float,
                                         center_idx: tuple[int, int],
                                         ) -> list[SpatialLabelObservation]:
-    # render image
-    # s = time.time()
-    pano = render_scene(scene, (robot_state_m[0], robot_state_m[1], image_pyramid_config.camera_height_m), left_yaw_rad)
-    # s1 = time.time()
+    return
+   # # render image
+   # # s = time.time()
+   # pano = render_scene(scene, (robot_state_m[0], robot_state_m[1], image_pyramid_config.camera_height_m), left_yaw_rad)
+   # # s1 = time.time()
 
-    # split image into image pyramid
-    image_pyramid = create_image_pyramid(pano, image_pyramid_config)
-    # s2 = time.time()
-    batch, range_and_yaw_percentage = image_pyramid_to_batch(image_pyramid, image_pyramid_config.image_slice_width_pixels)
-    # s3 = time.time()
-    model_inputs = preprocess_image_pyramid_batch(batch, device)
-    # s4 = time.time()
-    # run inference on all slices
-    patch_classes = model(model_inputs).argmax(dim=1).cpu().numpy()
-    # s5 = time.time()
-    # map inference results to radial bins
+   # # split image into image pyramid
+   # image_pyramid = create_image_pyramid(pano, image_pyramid_config)
+   # # s2 = time.time()
+   # batch, range_and_yaw_percentage = image_pyramid_to_batch(image_pyramid, image_pyramid_config.image_slice_width_pixels)
+   # # s3 = time.time()
+   # model_inputs = preprocess_image_pyramid_batch(batch, device)
+   # # s4 = time.time()
+   # # run inference on all slices
+   # patch_classes = model(model_inputs).argmax(dim=1).cpu().numpy()
+   # # s5 = time.time()
+   # # map inference results to radial bins
 
-    range_and_yaw_percentage[:, 1] = find_yaw_from_range_yaw_percentage(range_and_yaw_percentage, (left_yaw_rad, left_yaw_rad - 2 * np.pi))
-    # s6 = time.time()
-    obs = SpatialLabelObservation(center_idx, 
-                                  patch_classes, 
-                                  range_and_yaw_percentage, 
-                                  left_yaw_rad, 
-                                  swath_library, 
-                                  traversable_cost_s_per_meter,
-                                  image_pyramid_config.untraversable_cost_s_per_meter,
-                                  left_yaw_rad)
-    # s7 = time.time()
-    # print("Render time: ", s1 - s)
-    # print("image pyramid time: ", s2 - s1)
-    # print("image pyramid to batch time: ", s3 - s2)
-    # print("preprocess batch time: ", s4 - s3)
-    # print("model time: ", s5 - s4)
-    # print("finding yaw time: ", s6 - s5)
-    # print("creating observation time: ", s7 - s6)
-    return [obs]
+   # range_and_yaw_percentage[:, 1] = find_yaw_from_range_yaw_percentage(range_and_yaw_percentage, (left_yaw_rad, left_yaw_rad - 2 * np.pi))
+   # # s6 = time.time()
+   # obs = SpatialLabelObservation(center_idx, 
+   #                               patch_classes, 
+   #                               range_and_yaw_percentage, 
+   #                               left_yaw_rad, 
+   #                               swath_library, 
+   #                               traversable_cost_s_per_meter,
+   #                               image_pyramid_config.untraversable_cost_s_per_meter,
+   #                               left_yaw_rad)
+   # # s7 = time.time()
+   # # print("Render time: ", s1 - s)
+   # # print("image pyramid time: ", s2 - s1)
+   # # print("image pyramid to batch time: ", s3 - s2)
+   # # print("preprocess batch time: ", s4 - s3)
+   # # print("model time: ", s5 - s4)
+   # # print("finding yaw time: ", s6 - s5)
+   # # print("creating observation time: ", s7 - s6)
+   # return [obs]

@@ -30,7 +30,7 @@ from fitam.core.product_structures import ImageGenerationRequest
 from fitam.learning.reduce_space_to_cost import reduce_single_location_to_labels
 from fitam.core.data_tools import crop_image_for_sector
 from fitam.mapping.costmap_swath_library import load_swath_library_from_pkl, SwathLibrary
-from fitam.mapping.opengl_scene_rendering import render_scene, create_scene
+#from fitam.mapping.opengl_scene_rendering import render_scene, create_scene
 from fitam.mapping.land_cover_complex_map import LandCoverComplexMap
 from fitam.learning.dino_model import DinoModel
 from fitam.planning.planner_general import State
@@ -38,10 +38,10 @@ from fitam.planning.planner_general import State
 logger = logging.getLogger(__name__)
 
 
-def create_scene_from_complexmap(costmap_path: os.PathLike, costmap: LandCoverComplexMap) -> fury.window.Scene:
-    forest_floor_image_path = costmap_path / f"{costmap_path.name}.png"
-    scene = create_scene(costmap, str(forest_floor_image_path))
-    return scene
+#def create_scene_from_complexmap(costmap_path: os.PathLike, costmap: LandCoverComplexMap) -> fury.window.Scene:
+#    forest_floor_image_path = costmap_path / f"{costmap_path.name}.png"
+#    scene = create_scene(costmap, str(forest_floor_image_path))
+#    return scene
 
 
 def sample_points_from_environments(environments: list[LandCoverComplexMap], total_points: int, dataset_config: DatasetConfig) -> list:
@@ -142,7 +142,7 @@ def create_images_part(
     else:
         map_path = complex_map_path
     map = LandCoverComplexMap.from_map_folder(map_path)
-    scene = create_scene_from_complexmap(map_path, map)
+    #scene = create_scene_from_complexmap(map_path, map)
     # load the dataset config
     dataset_config = load_json_config(dataset_config_path)
     # create output directory if it doesn't exist
@@ -174,12 +174,12 @@ def create_images_part(
         # render image
         map_location = np.array(
             (*point, dataset_config.camera_height))
-        panorama = render_scene(scene, map_location, 0.0)
+        #panorama = render_scene(scene, map_location, 0.0)
         # pano index swaps it to BGR for opencv
-        panorama = panorama[..., ::-1]
-        df['img_path'].append(str(
-            (images_dir / f'{point_idx:07d}_pano.png').relative_to(save_root_dir)))
-        cv2.imwrite(str(images_dir / f'{point_idx:07d}_pano.png'), panorama)
+        #panorama = panorama[..., ::-1]
+        #df['img_path'].append(str(
+        #    (images_dir / f'{point_idx:07d}_pano.png').relative_to(save_root_dir)))
+        #cv2.imwrite(str(images_dir / f'{point_idx:07d}_pano.png'), panorama)
     # save the dataframe
     df = pd.DataFrame(df)
     df.to_csv(save_root_dir / f'points_{start_idx}_{end_idx}.csv', index=False)

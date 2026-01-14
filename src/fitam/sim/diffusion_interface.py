@@ -11,24 +11,28 @@ from fitam.mapping.land_cover_complex_map import LandCoverComplexMap, semantic_c
 from fitam.mapping.costmap import OccupancyGrid
 from fitam.mapping.observation_types import DiffusionObservation
 from learning_env_structure import utils
+#import learning_env_structure.make_model as mm
+#from learning_env_structure.make_model import make_conditional_model #as make_model
 from learning_env_structure.make_model import make_conditional_model, make_model
-from learning_env_structure.inpainting import MCMCParams
+#from learning_env_structure.inpainting import MCMCParams
 from learning_env_structure.palettize_image import semantic_from_rgb_with_color_cube
 from fitam.core.common import float_to_cv2_img, numpy_log_softmax, numpy_softmax
 from fitam.core.config.RadialMapConfig import DiffusionConfig
 from torchvision.transforms import ToTensor
+#from learning_env_structure.classifier_free_guidance import Unet, GaussianDiffusion
 
-
+#mm.Unet = Unet
+#mm.GaussianDiffusion = GaussianDiffusion
 class ModelType(enum.Enum):
     CONDITIONAL = 1
     MCMC = 2
 
-mcmc_params = MCMCParams(
-    num_steps=5,
-    min_timestep=500,
-    max_timestep=1000,
-    stepsize_multiplier=20,
-)
+#mcmc_params = MCMCParams(
+#    num_steps=5,
+#    min_timestep=500,
+#    max_timestep=1000,
+#    stepsize_multiplier=20,
+#)
 
 class DiffusionInterface:
 
@@ -39,7 +43,7 @@ class DiffusionInterface:
         self.config = config
         with open(self.config.palette_path, 'rb') as f:
             self.palette = pickle.load(f)
-
+        print(model_type)
         self.color_cube = np.load(self.config.color_lut_path)
         assert isinstance(config.save_root, Path), "save_root must be a Path object"
         if True in [config.save_diffusion_batch, config.save_mask_images, config.save_class_images, config.save_cost_uncertainty_images]:
@@ -50,9 +54,9 @@ class DiffusionInterface:
 
         self.model_type = model_type
         if model_path is not None:
-            if model_type == ModelType.MCMC:
-                self.model = make_model(model_path, image_size=self.config.diffusion_image_shape)
-            elif model_type == ModelType.CONDITIONAL:
+#            if model_type == ModelType.MCMC:
+ #               self.model = make_model(model_path, image_size=self.config.diffusion_image_shape)
+            if model_type == ModelType.CONDITIONAL:
                 self.model = make_conditional_model(model_path, image_size=self.config.diffusion_image_shape)
             else:
                 raise ValueError("Invalid model type")
@@ -173,18 +177,18 @@ class DiffusionInterface:
         input_img = cv2.cvtColor(masked_cv2_image, cv2.COLOR_BGR2RGB)
         input_img = ToTensor()(input_img)
         mask = torch.from_numpy(mask)
-        if self.model_type == ModelType.MCMC:
-            with torch.no_grad():
-                output = self.model.inpaint_ddim(
-                    input_img.cuda(), mask.cuda(),
-                    batch_size=self.config.batch_size,
-                    sampling_timesteps=200,
-                    mcmc_params=mcmc_params,
-                    is_noise_correlated=False,
-                    return_all_timesteps=False,
-                    live_viz=False,
-                )  # (B, 3, H, W)
-        elif self.model_type == ModelType.CONDITIONAL:
+       # if self.model_type == ModelType.MCMC:
+       #     with torch.no_grad():
+       #         output = self.model.inpaint_ddim(
+       #             input_img.cuda(), mask.cuda(),
+       #             batch_size=self.config.batch_size,
+       #             sampling_timesteps=200,
+       #             mcmc_params=mcmc_params,
+       #             is_noise_correlated=False,
+       #             return_all_timesteps=False,
+       #             live_viz=False,
+       #         )  # (B, 3, H, W)
+        if self.model_type == ModelType.CONDITIONAL:
             input_img = input_img.unsqueeze(0)
             input_img = input_img.expand((self.config.batch_size, *input_img.shape[-3:]))
             mask = mask.unsqueeze(0).unsqueeze(0)

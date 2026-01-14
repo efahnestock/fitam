@@ -8,7 +8,7 @@ from torch import nn
 import torch
 import numpy as np
 
-from fury import window
+#from fury import window
 from enum import Enum
 from fitam.mapping.land_cover_complex_map import LandCoverComplexMap
 from fitam.planning.planner_general import l2_dist_heuristic, list_of_state_to_tuples, State
@@ -19,11 +19,11 @@ from fitam.core.common import get_device, create_dir, load_json_config
 from fitam.planning.astar import A_Star
 from fitam.mapping.costmap import OccupancyGrid
 from fitam.mapping.costmap_swath_library import SwathLibrary, load_swath_library_from_pkl
-from fitam.mapping.opengl_scene_rendering import create_scene
+#from fitam.mapping.opengl_scene_rendering import create_scene
 from fitam.core.product_structures import EvaluationRequest
 from fitam.core.config.EvaluationConfig import EvaluationConfig
 from fitam.core.config.LoggingConfig import LoggingConfig
-from fitam.core.config.RadialMapConfig import RadialMapConfig, FarFieldConfig, SpatialLabelConfig
+from fitam.core.config.RadialMapConfig import RadialMapConfig, FarFieldConfig, SpatialLabelConfig, DiffusionConfig
 from fitam.core.config.TrainConfig import TrainConfig
 from fitam.core.config.DatasetConfig import DatasetConfig
 from fitam import MAPS_DIR
@@ -33,13 +33,13 @@ class ObserveFunctionType(Enum):
     FARFIELD = "farfield"
     SPATIAL_LABEL = "spatial_label"
     LOCAL = "local"
-
+    DIFFUSION = "diffusion"
 
 class WorkerAssets(NamedTuple):
     observe_function_type: ObserveFunctionType
     disable_farfield: bool
     use_renderer: bool
-    scene: window.Scene
+    scene: None
     master_costmap: OccupancyGrid
     land_cover_complex_map: LandCoverComplexMap
     occlusion_map: np.ndarray
@@ -123,6 +123,10 @@ def setup_worker_assets_and_config(
     complex_map = LandCoverComplexMap.from_map_folder(complex_map_path)
     occlusion_map = complex_map.create_occlusion_map()
 
+   # import jsonpickle
+   # with open(radial_map_config_path, "r") as f:
+   #     radial_map_config = jsonpickle.decode(f.read())
+   # print(radial_map_config)
     disable_farfield = radial_map_config.farfield_config is None
     use_renderer = not disable_farfield and not model_path is None
     # if we are using farfield and trained a network for it.. we need blender to render images
@@ -145,18 +149,20 @@ def setup_worker_assets_and_config(
     model = None
     if isinstance(radial_map_config.farfield_config, FarFieldConfig):
         observe_function_type = ObserveFunctionType.FARFIELD
-        if use_renderer:
-            scene = create_scene(complex_map, complex_map_path / f"{complex_map_path.name}.png")
+        #if use_renderer:
+         #   scene = create_scene(complex_map, complex_map_path / f"{complex_map_path.name}.png")
 
-            model = load_model(checkpoint_path=model_path, get_lightning=True)
-            model.to(device)
-            model.model.use_features = False  # features have not been pre-calculated
-            model.eval()
-            if device.type == 'cuda':
-                model.cuda()
+#            model = load_model(checkpoint_path=model_path, get_lightning=True)
+ #           model.to(device)
+  #          model.model.use_features = False  # features have not been pre-calculated
+   #         model.eval()
+    #        if device.type == 'cuda':
+     #           model.cuda(i)
+    elif isinstance(radial_map_config.farfield_config, DiffusionConfig):
+        observe_function_type = ObserveFunctionType.DIFFUSION
     elif isinstance(radial_map_config.farfield_config, SpatialLabelConfig):
         observe_function_type = ObserveFunctionType.SPATIAL_LABEL
-        scene = create_scene(complex_map, complex_map_path / f"{complex_map_path.name}.png")
+      #  scene = create_scene(complex_map, complex_map_path / f"{complex_map_path.name}.png")
         model = load_spatial_label_model(model_path)
         model.eval()
         if device.type == 'cuda':

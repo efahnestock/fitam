@@ -1,5 +1,5 @@
 from __future__ import annotations
-from fury import window
+#from fury import window
 import torch.nn as nn
 import numpy as np
 import os
@@ -13,7 +13,7 @@ from fitam.planning.planner_general import snap_easl_state_to_planning_state, St
 from fitam.core.common import chw_to_hwc_img, create_dir, dump_json_config
 from fitam.mapping.costmap import OccupancyGrid
 from fitam.mapping.costmap_swath_library import SwathLibrary
-from fitam.mapping.opengl_scene_rendering import render_scene
+#from fitam.mapping.opengl_scene_rendering import render_scene
 from fitam.core.config.EvaluationConfig import EvaluationConfig
 from fitam.core.config.RadialMapConfig import RadialMapConfig, FarFieldConfig
 from fitam.core.config.TrainConfig import TrainConfig
@@ -24,7 +24,7 @@ from fitam.generation.dataset_generation import get_classes_in_bins
 from fitam.mapping.belief import Belief
 
 
-def observe(logger: logging.Logger, current_state: State, replan_index: int, scene: window.Scene,
+def observe(logger: logging.Logger, current_state: State, replan_index: int,scene,
             trial_directories: TrialDirectories, belief: Belief, master_costmap: OccupancyGrid, model: nn.Module,
             swath_library: SwathLibrary, device: torch.device, use_renderer: bool,
             radial_map_config: RadialMapConfig, camera_height: float, eval_config: EvaluationConfig, train_config: TrainConfig,
@@ -137,29 +137,29 @@ def construct_radial_observations_output(
     return output_list
 
 
-def predict_labels(logger: logging.Logger, current_state: State, replan_index: int, scene: window.Scene,
+def predict_labels(logger: logging.Logger, current_state: State, replan_index: int, scene,
                    device: torch.device, trial_dirs: TrialDirectories, heading_offset: float,
                    model: torch.nn.Module, swath_library: SwathLibrary,  belief: Belief,
                    camera_height: float, radial_map_config: RadialMapConfig,
                    eval_config: EvaluationConfig) -> list[RadialObservation]:
-    logger.debug("Farfield is enabled, starting to generate panorama")
-    pano = render_scene(scene, np.asarray(
-        (current_state.x, current_state.y, camera_height)), heading_offset)
-    pano = pano.astype(np.float32) / 255.0
-    if eval_config.save_panoramas:
-        pano_img = (pano * 255).astype(np.uint8)
-        im = Image.fromarray(pano_img)
-        im.save(os.path.join(trial_dirs.base_pano_path,
-                             f'{replan_index:07d}.png'))
-        logger.debug("Saved panorama to disk")
-    logger.debug("Created panorama")
-    logger.debug("Starting to run inference on panorama slices")
-    pano = pano.transpose((2, 0, 1))
-    inf_imgs, cropped_imgs, cropped_yaw_ranges = prepare_image_input(pano,
-                                                                     (heading_offset, heading_offset - 2 * np.pi),
-                                                                     radial_map_config.farfield_config.orientation_bin_size,
-                                                                     model.name,
-                                                                     device)
+   # logger.debug("Farfield is enabled, starting to generate panorama")
+   # pano = render_scene(scene, np.asarray(
+   #     (current_state.x, current_state.y, camera_height)), heading_offset)
+   # pano = pano.astype(np.float32) / 255.0
+   # if eval_config.save_panoramas:
+   #     pano_img = (pano * 255).astype(np.uint8)
+   #     im = Image.fromarray(pano_img)
+   #     im.save(os.path.join(trial_dirs.base_pano_path,
+   #                          f'{replan_index:07d}.png'))
+   #     logger.debug("Saved panorama to disk")
+   # logger.debug("Created panorama")
+   # logger.debug("Starting to run inference on panorama slices")
+   # pano = pano.transpose((2, 0, 1))
+   # inf_imgs, cropped_imgs, cropped_yaw_ranges = prepare_image_input(pano,
+                                                             #        (heading_offset, heading_offset - 2 * np.pi),
+                                                              #       radial_map_config.farfield_config.orientation_bin_size,
+                                                               #      model.name,
+                                                                #     device)
     logger.debug("starting forward pass")
     if eval_config.save_network_results:
         create_dir(trial_dirs.base_network_results_path / 'tensors')
