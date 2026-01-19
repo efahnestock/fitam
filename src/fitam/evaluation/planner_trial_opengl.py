@@ -86,8 +86,8 @@ def worker(
     elif worker_assets.observe_function_type == ObserveFunctionType.DIFFUSION:
         full_overhead = worker_assets.land_cover_complex_map.create_floormask(include_only_visible=True)
 
-    if dump_panos == True:
-        worker_assets.eval_config.save_panoramas = dump_panos
+    #if dump_panos == True:
+    #    worker_assets.eval_config.save_panoramas = dump_panos
     if dump_network_results == True:
         worker_assets.eval_config.save_network_results = dump_network_results
     if dump_local_costmaps == True:
@@ -97,9 +97,9 @@ def worker(
 
     class_map = None
     class_index_to_name_map = None
-    if not worker_assets.use_renderer and worker_assets.eval_config.save_dataset:
-        logger.warn("Warning: Dataset export was requested but not using renderer. Disabling dataset export.")
-        worker_assets.eval_config.save_dataset = False
+    #if not worker_assets.use_renderer and worker_assets.eval_config.save_dataset:
+     #   logger.warn("Warning: Dataset export was requested but not using renderer. Disabling dataset export.")
+      #  worker_assets.eval_config.save_dataset = False
     if worker_assets.eval_config.save_dataset:
         class_map, class_index_to_name_map = worker_assets.land_cover_complex_map.create_flattened_class_map()
 
@@ -337,7 +337,7 @@ if __name__ == "__main__":
         assert args.eval_config_path is not None, "eval_config_path is required"
 
     if args.dump_all_outputs:
-        args.panoramas = True
+        #args.panoramas = True
         args.network_results = True
         args.local_costmap = True
         args.dataset = True

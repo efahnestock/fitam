@@ -127,6 +127,8 @@ def setup_worker_assets_and_config(
    # with open(radial_map_config_path, "r") as f:
    #     radial_map_config = jsonpickle.decode(f.read())
    # print(radial_map_config)
+    #disable_farfield = False
+    #use_renderer = False
     disable_farfield = radial_map_config.farfield_config is None
     use_renderer = not disable_farfield and not model_path is None
     # if we are using farfield and trained a network for it.. we need blender to render images

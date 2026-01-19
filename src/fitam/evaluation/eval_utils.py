@@ -280,12 +280,17 @@ def plot_map_summary(
     min_idxs, max_idxs = [np.inf, np.inf], [-np.inf, -np.inf]
     for obs in belief.observation_history:
         center_idx = obs.center_idx
-        max_obs_range = None
-        if isinstance(ff_config, FarFieldConfig):
+        max_obs_range = 150#None
+        if hasattr(ff_config, "range_bins"):
             max_obs_range = ff_config.range_bins[-1]
-        elif isinstance(ff_config, SpatialLabelConfig):
-            max_obs_range = ff_config.image_pyramid_config.max_range_m
-
+        elif hasattr(ff_config, "diffusion_image_size_m"):
+            max_obs_range = ff_config.diffusion_image_size_m[0] / 2
+            #if isinstance(ff_config, FarFieldConfig):
+         #   max_obs_range = ff_config.range_bins[-1]
+        #elif isinstance(ff_config, SpatialLabelConfig):
+            #max_obs_range = ff_config.image_pyramid_config.max_range_m
+            #print(max_obs_range)
+        #print(max_obs_range)
         min_idxs, max_idxs = find_map_bounds_around_point(
             belief, center_idx, max_obs_range, False, min_idxs, max_idxs, True)
     for state in state_history:
