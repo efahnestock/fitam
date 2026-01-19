@@ -340,7 +340,7 @@ if __name__ == "__main__":
         #args.panoramas = True
         args.network_results = True
         args.local_costmap = True
-        args.dataset = True
+        args.dataset = False #True
 
     job_numbers = decode_str_to_int_list(args.job_numbers)
     worker(

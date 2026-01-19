@@ -237,6 +237,7 @@ evaluation_configurations = {
         compute_config_path=CONFIGS_DIR / 'compute_config.json',
         swath_library_path=SWATHS_DIR / 'simulated_radial_configs' / 'baseline_radial_map_config.pkl',
         dependent_task=None,
+        save_root_path="/fitam/results/test2/baseline",
     ),
     'baseline_spatial_labels': dict(
         model_path=MODELS_DIR / 'spatial_label_propagation' / 'best_model.pt',
@@ -257,6 +258,7 @@ evaluation_configurations = {
         compute_config_path=CONFIGS_DIR / 'compute_config.json',
         swath_library_path=SWATHS_DIR / 'simulated_radial_configs' / 'perfect_vision_radial_map_config.pkl',
         dependent_task=None,
+        save_root_path="/fitam/results/test2/upperbound",
     ),
     'core_farfield': dict(
         model_path=MODELS_DIR / 'balt_standard' / 'balt_standard.ckpt',

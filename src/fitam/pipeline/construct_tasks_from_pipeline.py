@@ -256,6 +256,8 @@ def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Ca
     def task_evaluation():
         from fitam.evaluation.planner_trial_opengl import worker
         from fitam.evaluation.eval_save_inputs import save_all_inputs
+        import random
+        import json
 
         yield {
             'basename': "evaluation_" + c.name,
@@ -281,7 +283,44 @@ def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Ca
             # now tile these!
             # load the evaluation request!
             eval_req = load_json_config(eval_req_path)
-            num_tiles = max(1, len(eval_req.points) // compute_config.num_planning_requests_per_process)  # make sure we have at least one tile
+
+            NUM_PATHS_PER_MAP = 4
+            RANDOM_SEED = 0  # reproducible
+            random.seed(RANDOM_SEED)
+
+            num_points = len(eval_req.points)
+
+            if num_points <= NUM_PATHS_PER_MAP:
+                selected_indices = list(range(num_points))
+            else:
+                selected_indices = random.sample(range(num_points), NUM_PATHS_PER_MAP)
+
+            selection_metadata = {
+                "selected_indices": selected_indices,
+                "num_total_paths": len(eval_req.points),
+                "num_selected_paths": len(selected_indices),
+                "random_seed": RANDOM_SEED,
+            }
+            selection_path = c.save_root_path / save_path / "selected_paths.json"
+            selection_path.parent.mkdir(parents=True, exist_ok=True)
+
+            with open(selection_path, "w") as f:
+                json.dump(selection_metadata, f, indent=2)
+
+            # num_tiles = max(1, len(eval_req.points) // compute_config.num_planning_requests_per_process)  # make sure we have at least one tile
+            num_tiles = max(
+                1,
+                len(selected_indices) // compute_config.num_planning_requests_per_process
+            )
+
+            for i in range(num_tiles):
+                start = i * compute_config.num_planning_requests_per_process
+                end = (i+1) * compute_config.num_planning_requests_per_process
+                tile_indices = selected_indices[start:end]
+
+                if not tile_indices:
+                    continue
+
 
             for i in range(num_tiles):
                 start_idx = i * compute_config.num_planning_requests_per_process
@@ -291,7 +330,7 @@ def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Ca
                 yield dict(
                     name=f"{eval_req_path}_{i}",
                     actions=[(worker, (), dict(
-                        job_numbers=list(range(start_idx, end_idx)),
+                        job_numbers=tile_indices,#list(range(start_idx, end_idx)),
                         save_root=c.save_root_path / save_path,
                         model_path=c.model_path,
                         eval_request_path=eval_req_path,
@@ -302,6 +341,7 @@ def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Ca
                         eval_config_path=c.evaluation_config_path,
                         swath_library_path=c.swath_library_path,
                         num_active_bins=c.num_active_bins,
+                        dump_all_outputs=True,
                     ))],
                     file_dep=all_file_deps,
                     targets=new_targets,
