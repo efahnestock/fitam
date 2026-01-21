@@ -10,6 +10,16 @@ from doit import task
 import pandas as pd
 from pathlib import Path
 
+import re
+
+def numeric_sort(paths):
+    """Sort Path objects by numeric index in filename, e.g., map_016 -> 16"""
+    def key(p):
+        m = re.search(r'map_(\d+)', p.name)
+        return int(m.group(1)) if m else float('inf')
+    return sorted(paths, key=key)
+
+
 
 def make_tasks_from_config(config: list, headless=False) -> list[Callable]:
     resulting_tasks = []  # list of tuples (name, function)
@@ -95,27 +105,61 @@ def make_swath_task(c: Swath) -> tuple[str, Callable]:
 #                 file_dep=new_deps,
 #             )
 #     return ("map_sampling_" + c.name, task_create_maps)
-
 def make_evaluation_request_task(c: EvaluationRequest):
-
     def task_evaluation_request():
         from fitam.evaluation.eval_utils import create_single_eval_request_for_env
 
-        yield {
-            'name': None,
-        }
-        for map_path, save_path in zip(c.map_paths, c.save_paths):
+        yield {'name': None}
+
+        # Sort the map_paths and save_paths together by the numeric map index
+        def map_sort_key(p: Path):
+            import re
+            m = re.match(r'map_(\d+)', p.name)
+            if not m:
+                raise ValueError(f"Cannot extract map index from {p.name}")
+            return int(m.group(1))
+
+        # Pair map paths with their corresponding save paths
+        paired_paths = list(zip(c.map_paths, c.save_paths))
+        paired_paths_sorted = sorted(paired_paths, key=lambda pair: map_sort_key(pair[0]))
+
+        # Now iterate in sorted order
+        for map_path, save_path in paired_paths_sorted:
             yield dict(
                 name=f"{map_path}__{save_path}",
-                actions=[(create_single_eval_request_for_env, (), dict(map_path=map_path,
-                                                                       eval_config_path=c.evaluation_config_path,
-                                                                       save_path=save_path))],
+                actions=[(create_single_eval_request_for_env, (), dict(
+                    map_path=map_path,
+                    eval_config_path=c.evaluation_config_path,
+                    save_path=save_path
+                ))],
                 file_dep=[map_path / f"{map_path.name}.pkl", c.evaluation_config_path],
                 targets=[save_path],
             )
 
     return (c.name, task_evaluation_request)
-
+#
+#def make_evaluation_request_task(c: EvaluationRequest):
+#
+#    def task_evaluation_request():
+#        from fitam.evaluation.eval_utils import create_single_eval_request_for_env
+#
+#        yield {
+#            'name': None,
+#        }
+#        for map_path, save_path in zip(numeric_sort(c.map_paths), numeric_sort(c.save_paths)):
+#
+##        for map_path, save_path in zip(c.map_paths, c.save_paths):
+#            yield dict(
+#                name=f"{map_path}__{save_path}",
+#                actions=[(create_single_eval_request_for_env, (), dict(map_path=map_path,
+#                                                                       eval_config_path=c.evaluation_config_path,
+#                                                                       save_path=save_path))],
+#                file_dep=[map_path / f"{map_path.name}.pkl", c.evaluation_config_path],
+#                targets=[save_path],
+#            )
+#
+#    return (c.name, task_evaluation_request)
+#
 
 def make_time_based_location_sampling_task(c: TimedLocationSampling) -> tuple[str, Callable]:
 
@@ -341,7 +385,9 @@ def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Ca
                         eval_config_path=c.evaluation_config_path,
                         swath_library_path=c.swath_library_path,
                         num_active_bins=c.num_active_bins,
-                        dump_all_outputs=True,
+                        #dump_all_outputs=True,
+                        dump_network_results=True,
+                        dump_local_costmaps=True,
                     ))],
                     file_dep=all_file_deps,
                     targets=new_targets,
