@@ -228,6 +228,16 @@ all_ablation_evaluation_request_paths = sorted(list((EVALUATION_REQUESTS_DIR / "
 all_shakeout_evaluation_request_paths = sorted(list((EVALUATION_REQUESTS_DIR / "shake_out").glob("*.json")))
 
 evaluation_configurations = {
+    'diffusion': dict(
+        model_path=MODELS_DIR / 'model-50-128-128-lcm-palette.pt',
+        dataset_config_path=None,
+        radial_map_config_path=CONFIGS_DIR / 'simulated_radial_configs' / 'diffusion_radial_map_config.json',
+        logging_config_path=CONFIGS_DIR / 'logging_config.json',
+        training_config_path=None,
+        compute_config_path=CONFIGS_DIR / 'compute_config.json',
+        swath_library_path=SWATHS_DIR / 'simulated_radial_configs' / 'diffusion_radial_map_config.pkl',
+        dependent_task=None,
+    ),
     'baseline': dict(
         model_path=None,
         dataset_config_path=None,
@@ -437,6 +447,7 @@ threshold['swath_library_path'] = SWATHS_DIR / 'simulated_radial_configs' / 'var
 pipeline_config.append(Evaluation(**threshold))
 
 # full evaluations
+pipeline_config.append(Evaluation(**make_evaluation('diffusion', evaluation_configurations, 'all_test')))
 pipeline_config.append(Evaluation(**make_evaluation('baseline', evaluation_configurations, 'all_test')))
 pipeline_config.append(Evaluation(**make_evaluation('perfect_vision', evaluation_configurations, 'all_test')))
 pipeline_config.append(Evaluation(**make_evaluation('core_farfield', evaluation_configurations, 'all_test')))

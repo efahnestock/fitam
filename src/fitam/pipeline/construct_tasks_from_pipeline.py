@@ -374,7 +374,7 @@ def make_evaluation_task(c: Evaluation, headless: bool = False) -> tuple[str, Ca
                 yield dict(
                     name=f"{eval_req_path}_{i}",
                     actions=[(worker, (), dict(
-                        job_numbers=tile_indices,#list(range(start_idx, end_idx)),
+                        job_numbers=[5],#tile_indices,#list(range(start_idx, end_idx)),
                         save_root=c.save_root_path / save_path,
                         model_path=c.model_path,
                         eval_request_path=eval_req_path,

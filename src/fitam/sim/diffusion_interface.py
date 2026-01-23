@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import pickle
+import time
 import cv2
 import shutil
 import enum
@@ -19,7 +20,13 @@ from learning_env_structure.palettize_image import semantic_from_rgb_with_color_
 from fitam.core.common import float_to_cv2_img, numpy_log_softmax, numpy_softmax
 from fitam.core.config.RadialMapConfig import DiffusionConfig
 from torchvision.transforms import ToTensor
+from fitam import FITAM_ROOT_DIR
 #from learning_env_structure.classifier_free_guidance import Unet, GaussianDiffusion
+from torch.cuda.amp import autocast
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 #mm.Unet = Unet
 #mm.GaussianDiffusion = GaussianDiffusion
@@ -41,10 +48,10 @@ class DiffusionInterface:
                  model_type: ModelType,
                  config: DiffusionConfig):
         self.config = config
-        with open(self.config.palette_path, 'rb') as f:
+        with open(f"{FITAM_ROOT_DIR}/{self.config.palette_path}", 'rb') as f:
             self.palette = pickle.load(f)
         print(model_type)
-        self.color_cube = np.load(self.config.color_lut_path)
+        self.color_cube = np.load(f"{FITAM_ROOT_DIR}/{self.config.color_lut_path}")
         assert isinstance(config.save_root, Path), "save_root must be a Path object"
         if True in [config.save_diffusion_batch, config.save_mask_images, config.save_class_images, config.save_cost_uncertainty_images]:
             if config.save_root.exists():
@@ -58,6 +65,18 @@ class DiffusionInterface:
  #               self.model = make_model(model_path, image_size=self.config.diffusion_image_shape)
             if model_type == ModelType.CONDITIONAL:
                 self.model = make_conditional_model(model_path, image_size=self.config.diffusion_image_shape)
+                self.model.eval()
+                self.model.cuda()
+
+                torch.backends.cuda.matmul.allow_tf32 = True
+                torch.backends.cudnn.allow_tf32 = True
+
+                self.model = torch.compile(
+                    self.model,
+                    mode="reduce-overhead",
+                    fullgraph=False
+                )
+                print("Diffusion model compiled:", type(self.model))
             else:
                 raise ValueError("Invalid model type")
         else:
@@ -193,10 +212,35 @@ class DiffusionInterface:
             input_img = input_img.expand((self.config.batch_size, *input_img.shape[-3:]))
             mask = mask.unsqueeze(0).unsqueeze(0)
             mask = mask.expand((self.config.batch_size, 1, *mask.shape[-2:]))
-
+            
+            torch.cuda.synchronize()
+            start_time = time.perf_counter()
             # if not Path('/tmp/inpaint_result.pt').exists():
-            with torch.no_grad():
-                output = self.model.sample(return_all_timesteps = False, x_obs = input_img.cuda(), x_obs_mask = mask.cuda(), batch_size=self.config.batch_size)
+
+#           with torch.no_grad(), autocast(device_type='cuda', dtype=torch.float16):
+#            #with torch.no_grad(), autocast("cuda", dtype=torch.float16):
+#                output = self.model.sample(
+#                    return_all_timesteps=False,
+#                    x_obs=input_img.cuda(),
+#                    x_obs_mask=mask.cuda(),
+#                    batch_size=self.config.batch_size
+#                )
+            with torch.no_grad(), autocast(dtype=torch.float16):
+             output = self.model.sample(
+                return_all_timesteps=False,
+                x_obs=input_img.cuda(),
+                x_obs_mask=mask.cuda(),
+                batch_size=self.config.batch_size
+            )
+            torch.cuda.synchronize()
+            end_time = time.perf_counter()
+            total_sampling_time = end_time - start_time
+            logger.debug(f"Diffusion sampling time: {total_sampling_time:.3f}s")
+            print(f"Diffusion sampling time: {total_sampling_time:.3f}s")
+            print("AMP enabled:", torch.is_autocast_enabled())
+            # if not Path('/tmp/inpaint_result.pt').exists():
+            #with torch.no_grad():
+            #    output = self.model.sample(return_all_timesteps = False, x_obs = input_img.cuda(), x_obs_mask = mask.cuda(), batch_size=self.config.batch_size)
             # else:
             #     output = torch.load('/tmp/inpaint_result.pt')
 
