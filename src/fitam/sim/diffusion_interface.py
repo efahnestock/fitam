@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import time
 import pickle
 import time
 import cv2
@@ -40,13 +41,14 @@ class ModelType(enum.Enum):
 #    max_timestep=1000,
 #    stepsize_multiplier=20,
 #)
-
+logger = logging.getLogger(__name__)
 class DiffusionInterface:
 
     def __init__(self, 
                  model_path: Optional[Path], 
                  model_type: ModelType,
                  config: DiffusionConfig):
+        #logger = logging.getLogger(__name__)
         self.config = config
         with open(f"{FITAM_ROOT_DIR}/{self.config.palette_path}", 'rb') as f:
             self.palette = pickle.load(f)
@@ -212,7 +214,6 @@ class DiffusionInterface:
             input_img = input_img.expand((self.config.batch_size, *input_img.shape[-3:]))
             mask = mask.unsqueeze(0).unsqueeze(0)
             mask = mask.expand((self.config.batch_size, 1, *mask.shape[-2:]))
-            
             torch.cuda.synchronize()
             start_time = time.perf_counter()
             # if not Path('/tmp/inpaint_result.pt').exists():
@@ -235,12 +236,12 @@ class DiffusionInterface:
             torch.cuda.synchronize()
             end_time = time.perf_counter()
             total_sampling_time = end_time - start_time
-            logger.debug(f"Diffusion sampling time: {total_sampling_time:.3f}s")
+            logger.info(f"Diffusion sampling time: {total_sampling_time:.3f}s")
             print(f"Diffusion sampling time: {total_sampling_time:.3f}s")
             print("AMP enabled:", torch.is_autocast_enabled())
-            # if not Path('/tmp/inpaint_result.pt').exists():
             #with torch.no_grad():
             #    output = self.model.sample(return_all_timesteps = False, x_obs = input_img.cuda(), x_obs_mask = mask.cuda(), batch_size=self.config.batch_size)
+            
             # else:
             #     output = torch.load('/tmp/inpaint_result.pt')
 

@@ -1,8 +1,8 @@
 import os
 import pathlib
 
-#FITAM_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-FITAM_ROOT_DIR = "/mnt/flex-s-pypzpbfqm6/fitam/"
+FITAM_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+#FITAM_ROOT_DIR = "/mnt/flex-s-pypzpbfqm6/fitam/"
 SWATHS_DIR = pathlib.Path(FITAM_ROOT_DIR, 'results', 'swaths')
 CONFIGS_DIR = pathlib.Path(FITAM_ROOT_DIR, 'results', 'configs')
 MAPS_DIR = pathlib.Path(FITAM_ROOT_DIR, 'results', 'maps')

@@ -24,7 +24,7 @@ from fitam.evaluation.eval_movement import move
 
 from fitam.evaluation.eval_inpainting_observation import observe as inpaint_observe
 from fitam.sim.diffusion_interface import DiffusionInterface, ModelType
-
+from fitam.core.common import save_compressed_pickle
 
 
 def worker(
@@ -245,7 +245,7 @@ def worker(
                                        worker_assets.radial_map_config.farfield_config,
                                        10, worker_assets.master_costmap, worker_assets.land_cover_complex_map, state_history, path_history, start_state=cts.start_state, end_state=cts.goal_state)
                 fig.savefig(trial_directories.base_local_costmap_path / f"{replan_index:07d}.png")
-                # save_compressed_pickle(local_costmap, trial_directories.base_local_costmap_path / f"{replan_index:07d}.xz")
+                #save_compressed_pickle(local_costmap, trial_directories.base_local_costmap_path / f"{replan_index:07d}.xz")
                 plt.close(fig)
                 logger.debug("Saved local costmap to disk")
 
