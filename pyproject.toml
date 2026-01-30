@@ -36,6 +36,8 @@ dependencies = [
     "jupyter>=1.1.1",
     "pandas>=2.0.0",
     "ipdb>=0.13.13",
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
 ]
 requires-python = "<3.12,>=3.10"
 readme = "README.md"

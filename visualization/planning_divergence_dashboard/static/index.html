@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning Approach Comparison</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Planning Approach Comparison Dashboard</h1>
+
+        <div class="controls">
+            <div class="selector-group">
+                <label for="approach1">Approach 1:</label>
+                <select id="approach1"></select>
+            </div>
+            <div class="selector-group">
+                <label for="approach2">Approach 2:</label>
+                <select id="approach2"></select>
+            </div>
+            <div class="selector-group">
+                <label for="trial">Trial:</label>
+                <select id="trial"></select>
+            </div>
+        </div>
+
+        <div class="plot-container">
+            <div id="cost-plot"></div>
+        </div>
+
+        <div class="image-section">
+            <div class="image-panel">
+                <h3 id="approach1-label">Approach 1</h3>
+                <div class="slider-container">
+                    <input type="range" id="slider1" min="0" max="0" value="0">
+                    <span id="slider1-value">0 / 0</span>
+                </div>
+                <div class="image-container">
+                    <img id="costmap1" alt="Costmap 1" />
+                </div>
+            </div>
+            <div class="image-panel">
+                <h3 id="approach2-label">Approach 2</h3>
+                <div class="slider-container">
+                    <input type="range" id="slider2" min="0" max="0" value="0">
+                    <span id="slider2-value">0 / 0</span>
+                </div>
+                <div class="image-container">
+                    <img id="costmap2" alt="Costmap 2" />
+                </div>
+            </div>
+        </div>
+
+        <div class="keyboard-help">
+            <strong>Keyboard shortcuts:</strong>
+            Left/Right arrows: step through iterations (both approaches) |
+            Shift+Arrow: jump 10 iterations
+        </div>
+    </div>
+
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>

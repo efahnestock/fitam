@@ -1,10 +1,11 @@
 services:
   fitam:
-    build: 
+    build:
       context: .
     volumes:
       - .:/fitam
       - ~/.ssh:/home/developer/.ssh:ro
+      - /data:/data
     stdin_open: true
     tty: true
     working_dir: /fitam
@@ -14,9 +15,10 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - LOCAL_UID=${UID:-1000}
       - LOCAL_GID=${GID:-1000}
+      - PYTHONPATH=/fitam/learning_env_structure:${PYTHONPATH}
 
   notebook:
-    build: 
+    build:
       context: .
     volumes:
       - .:/fitam
@@ -34,3 +36,17 @@ services:
       - LOCAL_UID=${UID:-1000}
       - LOCAL_GID=${GID:-1000}
     command: ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--notebook-dir=/fitam"]
+
+  planning-divergence-dashboard:
+    build:
+      context: .
+    volumes:
+      - .:/fitam
+      - /data:/data:ro
+    working_dir: /fitam
+    ports:
+      - "8050:8050"
+    environment:
+      - LOCAL_UID=${UID:-1000}
+      - LOCAL_GID=${GID:-1000}
+    command: ["python", "-m", "uvicorn", "visualization.planning_divergence_dashboard.app:app", "--host", "0.0.0.0", "--port", "8050"]
