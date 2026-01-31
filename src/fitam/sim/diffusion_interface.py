@@ -15,7 +15,7 @@ from fitam.mapping.observation_types import DiffusionObservation
 from learning_env_structure import utils
 #import learning_env_structure.make_model as mm
 #from learning_env_structure.make_model import make_conditional_model #as make_model
-from learning_env_structure.make_model import make_conditional_model, make_model
+from learning_env_structure.make_model import make_conditional_model
 #from learning_env_structure.inpainting import MCMCParams
 from learning_env_structure.palettize_image import semantic_from_rgb_with_color_cube
 from fitam.core.common import float_to_cv2_img, numpy_log_softmax, numpy_softmax
@@ -72,10 +72,14 @@ class DiffusionInterface:
 
                 torch.backends.cuda.matmul.allow_tf32 = True
                 torch.backends.cudnn.allow_tf32 = True
+                torch.backends.cudnn.benchmark = True
+
+                # Convert to channels_last memory format for better H100 performance
+                self.model = self.model.to(memory_format=torch.channels_last)
 
                 self.model = torch.compile(
                     self.model,
-                    mode="reduce-overhead",
+                    mode="max-autotune",
                     fullgraph=False
                 )
                 print("Diffusion model compiled:", type(self.model))
@@ -185,9 +189,17 @@ class DiffusionInterface:
         masked_rgb_img[output_mask_uint8 > 0] = output_img[output_mask_uint8 > 0]
 
         if self.config.save_mask_images:
-            cv2.imwrite(f"{self.config.save_root / 'diffusion_observations'}/{self.observation_idx:07d}_mask_{center_idx}.png", output_mask_uint8)
-            cv2.imwrite(f"{self.config.save_root / 'diffusion_observations'}/{self.observation_idx:07d}_rgb_{center_idx}.png", output_img)
-            cv2.imwrite(f"{self.config.save_root / 'diffusion_observations'}/{self.observation_idx:07d}_masked_rgb_{center_idx}.png", masked_rgb_img)
+            obs_dir = self.config.save_root / 'diffusion_observations'
+            obs_dir.mkdir(parents=True, exist_ok=True)
+            cv2.imwrite(f"{obs_dir}/{self.observation_idx:07d}_mask_{center_idx}.png", output_mask_uint8)
+            cv2.imwrite(f"{obs_dir}/{self.observation_idx:07d}_rgb_{center_idx}.png", output_img)
+            cv2.imwrite(f"{obs_dir}/{self.observation_idx:07d}_masked_rgb_{center_idx}.png", masked_rgb_img)
+            # Also save as tensors for model comparison
+            torch.save({
+                'masked_rgb': torch.from_numpy(masked_rgb_img.copy()),
+                'mask': torch.from_numpy(output_mask_uint8.astype(bool).copy()),
+                'full_rgb': torch.from_numpy(output_img.copy()),
+            }, f"{obs_dir}/{self.observation_idx:07d}_input.pt")
 
         output_mask = output_mask_uint8.astype(bool)
 
@@ -214,31 +226,26 @@ class DiffusionInterface:
             input_img = input_img.expand((self.config.batch_size, *input_img.shape[-3:]))
             mask = mask.unsqueeze(0).unsqueeze(0)
             mask = mask.expand((self.config.batch_size, 1, *mask.shape[-2:]))
-            torch.cuda.synchronize()
-            start_time = time.perf_counter()
-            # if not Path('/tmp/inpaint_result.pt').exists():
+            
+            if self.config.profile_timing:
+                torch.cuda.synchronize()
+                start_time = time.perf_counter()
 
-#           with torch.no_grad(), autocast(device_type='cuda', dtype=torch.float16):
-#            #with torch.no_grad(), autocast("cuda", dtype=torch.float16):
-#                output = self.model.sample(
-#                    return_all_timesteps=False,
-#                    x_obs=input_img.cuda(),
-#                    x_obs_mask=mask.cuda(),
-#                    batch_size=self.config.batch_size
-#                )
             with torch.no_grad(), autocast(dtype=torch.float16):
-             output = self.model.sample(
-                return_all_timesteps=False,
-                x_obs=input_img.cuda(),
-                x_obs_mask=mask.cuda(),
-                batch_size=self.config.batch_size
-            )
-            torch.cuda.synchronize()
-            end_time = time.perf_counter()
-            total_sampling_time = end_time - start_time
-            logger.info(f"Diffusion sampling time: {total_sampling_time:.3f}s")
-            print(f"Diffusion sampling time: {total_sampling_time:.3f}s")
-            print("AMP enabled:", torch.is_autocast_enabled())
+                output = self.model.sample(
+                    return_all_timesteps=False,
+                    x_obs=input_img.cuda(),
+                    x_obs_mask=mask.cuda(),
+                    batch_size=self.config.batch_size
+                )
+
+            if self.config.profile_timing:
+                torch.cuda.synchronize()
+                end_time = time.perf_counter()
+                total_sampling_time = end_time - start_time
+                logger.info(f"Diffusion sampling time: {total_sampling_time:.3f}s")
+                print(f"Diffusion sampling time: {total_sampling_time:.3f}s")
+                print("AMP enabled:", torch.is_autocast_enabled())
             #with torch.no_grad():
             #    output = self.model.sample(return_all_timesteps = False, x_obs = input_img.cuda(), x_obs_mask = mask.cuda(), batch_size=self.config.batch_size)
             
@@ -246,9 +253,13 @@ class DiffusionInterface:
             #     output = torch.load('/tmp/inpaint_result.pt')
 
             
-        torch.save(output, f"{self.config.save_root / 'diffusion_outputs' / f'{self.observation_idx:07d}_diffusion_output.pt'}")
         if self.config.save_diffusion_batch:
-            utils.save_gif(output.unsqueeze(1), str(self.config.save_root / 'diffusion_observations' / f"{self.observation_idx:07d}_diffusion_batch.gif"))
+            diffusion_outputs_dir = self.config.save_root / 'diffusion_outputs'
+            diffusion_outputs_dir.mkdir(parents=True, exist_ok=True)
+            torch.save(output, str(diffusion_outputs_dir / f'{self.observation_idx:07d}_diffusion_output.pt'))
+            diffusion_obs_dir = self.config.save_root / 'diffusion_observations'
+            diffusion_obs_dir.mkdir(parents=True, exist_ok=True)
+            utils.save_gif(output.unsqueeze(1), str(diffusion_obs_dir / f"{self.observation_idx:07d}_diffusion_batch.gif"))
         output = output.cpu().numpy()
         output = (output * 255).astype(np.uint8).transpose(0, 2, 3, 1)
         return output # (batch, height, width, 3) uint8

@@ -68,6 +68,7 @@ class DiffusionConfig:
     save_class_images: bool = False
     save_cost_uncertainty_images: bool = False
     save_root: Path = Path("/tmp/diffusion")
+    profile_timing: bool = False  # Enable cuda sync for accurate timing measurements
 
 class MapFusionType(Enum):
     KALMAN = "kalman"
