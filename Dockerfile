@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
+FROM nvidia/cuda:12.2.2-runtime-ubuntu22.04
 
 # Install Python 3.10, pip, and other dependencies
 RUN apt-get update && \
@@ -73,9 +73,8 @@ ENV UV_PROJECT_ENVIRONMENT=/software/env_fitam
 COPY --chown=developer:developer pyproject.toml README.md /fitam/
 COPY --chown=developer:developer src/ /fitam/src
 
-RUN pip install numpy 
-ENV TORCH_CUDA_ARCH_LIST="5.2 6.0 6.1 7.0 7.5 8.0 8.6+PTX"
-RUN uv sync
+ENV TORCH_CUDA_ARCH_LIST="7.5 8.0 8.6+PTX"
+RUN uv sync && rm -rf ~/.cache/uv ~/.cache/pip
 ENV PATH="/software/env_fitam/bin:$PATH"
 #ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/software/VTK-modified-pano/build/build/lib.linux-x86_64-3.10/vtkmodules/"
 
