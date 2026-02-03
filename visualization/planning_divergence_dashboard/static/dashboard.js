@@ -1,6 +1,7 @@
 // State
 let approach1Data = null;
 let approach2Data = null;
+let aggregateData = null;
 
 // DOM elements
 const approach1Select = document.getElementById('approach1');
@@ -60,12 +61,115 @@ async function loadTrials() {
         trialSelect.add(new Option(trial, trial));
     });
 
+    // Load aggregate data for the scatter plot
+    await loadAggregateData();
+
     if (data.trials.length > 0) {
         await loadTrialData();
     } else {
         clearPlot();
         clearImages();
     }
+}
+
+async function loadAggregateData() {
+    const approach1 = approach1Select.value;
+    const approach2 = approach2Select.value;
+
+    if (!approach1 || !approach2) return;
+
+    const response = await fetch(`/api/aggregate-data?approach1=${approach1}&approach2=${approach2}`);
+    const data = await response.json();
+    aggregateData = data.data;
+
+    plotAggregate();
+}
+
+function plotAggregate() {
+    if (!aggregateData || aggregateData.length === 0) {
+        Plotly.purge('aggregate-plot');
+        return;
+    }
+
+    const x = aggregateData.map(d => d.cost1);
+    const y = aggregateData.map(d => d.cost2);
+    const trials = aggregateData.map(d => d.trial);
+
+    const maxVal = Math.max(...x, ...y);
+
+    const trace = {
+        x: x,
+        y: y,
+        text: trials,
+        mode: 'markers',
+        type: 'scatter',
+        marker: {
+            size: 10,
+            color: '#1f77b4',
+        },
+        hovertemplate: '%{text}<br>%{x:.1f} vs %{y:.1f}<extra></extra>',
+    };
+
+    // Diagonal reference line
+    const diagonalLine = {
+        x: [0, maxVal],
+        y: [0, maxVal],
+        mode: 'lines',
+        type: 'scatter',
+        line: {
+            color: 'gray',
+            width: 1,
+            dash: 'dot',
+        },
+        hoverinfo: 'skip',
+        showlegend: false,
+    };
+
+    const layout = {
+        title: 'Aggregate: Final Cost Comparison',
+        xaxis: {
+            title: approach1Select.value,
+            scaleanchor: 'y',
+            scaleratio: 1,
+            rangemode: 'tozero',
+        },
+        yaxis: {
+            title: approach2Select.value,
+            rangemode: 'tozero',
+        },
+        hovermode: 'closest',
+        showlegend: false,
+    };
+
+    Plotly.newPlot('aggregate-plot', [diagonalLine, trace], layout);
+
+    // Click handler to navigate to trial
+    document.getElementById('aggregate-plot').on('plotly_click', function(data) {
+        const pointIndex = data.points[0].pointIndex;
+        // Account for diagonal line being trace 0
+        if (data.points[0].curveNumber === 1) {
+            const trial = aggregateData[pointIndex].trial;
+            trialSelect.value = trial;
+            loadTrialData();
+        }
+    });
+}
+
+function updateAggregateHighlight() {
+    if (!aggregateData || aggregateData.length === 0) return;
+
+    const currentTrial = trialSelect.value;
+    const colors = aggregateData.map(d =>
+        d.trial === currentTrial ? '#ff7f0e' : '#1f77b4'
+    );
+    const sizes = aggregateData.map(d =>
+        d.trial === currentTrial ? 14 : 10
+    );
+
+    Plotly.restyle('aggregate-plot', {
+        'marker.color': [colors],
+        'marker.size': [sizes],
+    }, [1]);  // Update trace 1 (the scatter points)
 }
 
 async function loadTrialData() {
@@ -102,6 +206,9 @@ async function loadTrialData() {
 
     // Plot costs
     plotCosts();
+
+    // Highlight current trial in aggregate plot
+    updateAggregateHighlight();
 
     // Load initial images
     loadImages();

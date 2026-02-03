@@ -1,5 +1,8 @@
 """FastAPI application for the planning approach comparison dashboard."""
 
+import itertools
+import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
@@ -8,7 +11,28 @@ from fastapi.staticfiles import StaticFiles
 
 from . import data_loader
 
-app = FastAPI(title="Planning Approach Comparison Dashboard")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Pre-cache aggregate data for all approach pairs on startup."""
+    approaches = data_loader.get_approaches()
+    pairs = list(itertools.combinations(approaches, 2))
+    logger.info(f"Pre-caching aggregate data for {len(pairs)} approach pairs...")
+
+    for a1, a2 in pairs:
+        logger.info(f"  Caching {a1} vs {a2}...")
+        data_loader.get_aggregate_data(a1, a2)
+        # Also cache reverse order
+        data_loader.get_aggregate_data(a2, a1)
+
+    logger.info("Pre-caching complete.")
+    yield
+
+
+app = FastAPI(title="Planning Approach Comparison Dashboard", lifespan=lifespan)
 
 # Mount static files
 STATIC_DIR = Path(__file__).parent / "static"
@@ -67,6 +91,16 @@ async def get_costmap_image(
         raise HTTPException(status_code=404, detail="Costmap image not found")
 
     return FileResponse(image_path, media_type="image/png")
+
+
+@app.get("/api/aggregate-data")
+async def get_aggregate_data(
+    approach1: str = Query(..., description="First approach"),
+    approach2: str = Query(..., description="Second approach"),
+):
+    """Get final costs for all common trials between two approaches."""
+    data = data_loader.get_aggregate_data(approach1, approach2)
+    return {"data": list(data)}
 
 
 if __name__ == "__main__":

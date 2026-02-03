@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planning Approach Comparison</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css?v=2">
 </head>
 <body>
     <div class="container">
@@ -24,6 +24,10 @@
                 <label for="trial">Trial:</label>
                 <select id="trial"></select>
             </div>
+        </div>
+
+        <div class="plot-container aggregate-plot-container">
+            <div id="aggregate-plot"></div>
         </div>
 
         <div class="plot-container">
@@ -60,6 +64,6 @@
         </div>
     </div>
 
-    <script src="/static/dashboard.js"></script>
+    <script src="/static/dashboard.js?v=2"></script>
 </body>
 </html>

@@ -66,6 +66,17 @@ h1 {
     height: 400px;
 }
 
+#aggregate-plot {
+    width: 100%;
+    height: 500px;
+}
+
+.aggregate-plot-container {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .image-section {
     display: flex;
     gap: 20px;

@@ -1,10 +1,14 @@
 """Data loading utilities for the planning approach comparison dashboard."""
 
 import pickle
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 DATA_BASE_PATH = Path("/data/diffusion/fitam_data/evaluations/all_test")
+
+# Cache for final costs per (approach, trial)
+_final_cost_cache: dict[tuple[str, str], float | None] = {}
 
 
 def get_approaches() -> list[str]:
@@ -111,3 +115,40 @@ def get_costmap_path(approach: str, trial: str, index: int) -> Path | None:
         return None
 
     return costmap_path
+
+
+def get_final_cost(approach: str, trial: str) -> float | None:
+    """Get the final accumulated cost for a trial (cached)."""
+    cache_key = (approach, trial)
+    if cache_key in _final_cost_cache:
+        return _final_cost_cache[cache_key]
+
+    data = load_trial_data(approach, trial)
+    if data is None or not data["accumulated_cost"]:
+        _final_cost_cache[cache_key] = None
+        return None
+
+    cost = data["accumulated_cost"][-1]
+    _final_cost_cache[cache_key] = cost
+    return cost
+
+
+@lru_cache(maxsize=32)
+def get_aggregate_data(approach1: str, approach2: str) -> tuple[dict, ...]:
+    """Get final costs for all common trials between two approaches (cached)."""
+    common_trials = get_common_trials(approach1, approach2)
+    results = []
+
+    for trial in common_trials:
+        cost1 = get_final_cost(approach1, trial)
+        cost2 = get_final_cost(approach2, trial)
+
+        if cost1 is not None and cost2 is not None:
+            results.append({
+                "trial": trial,
+                "cost1": cost1,
+                "cost2": cost2,
+            })
+
+    # Return tuple for lru_cache hashability
+    return tuple(results)
